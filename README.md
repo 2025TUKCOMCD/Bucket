@@ -18,44 +18,48 @@
 ## ⚙️ 개발 환경
 
 ### 개발 언어
-<div style="display: flex; align-items: center; gap: 40px; flex-wrap: nowrap;">
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="Java" width="40" height="40"/>
-    <p>JAVA</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg" alt="Kotlin" width="40" height="40"/>
-    <p>Kotlin</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" width="40" height="40"/>
-    <p>Python</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" alt="C#" width="40" height="40"/>
-    <p>C#</p>
-  </div>
-</div>
+<table>
+  <tr>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="Java" width="50" height="50"/><br/>
+      JAVA
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg" alt="Kotlin" width="50" height="50"/><br/>
+      Kotlin
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" width="50" height="50"/><br/>
+      Python
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" alt="C#" width="50" height="50"/><br/>
+      C#
+    </td>
+  </tr>
+</table>
 
 ### 사용 프레임워크
-<div style="display: flex; align-items: center; gap: 40px; flex-wrap: nowrap;">
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Spring" width="40" height="40"/>
-    <p>Spring</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg" alt="Android SDK" width="40" height="40"/>
-    <p>Android SDK</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="40" height="40"/>
-    <p>Unity</p>
-  </div>
-  <div style="text-align: center;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="40" height="40"/>
-    <p>OpenCV</p>
-  </div>
-</div>
+<table>
+  <tr>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Spring" width="50" height="50"/><br/>
+      Spring
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg" alt="Android SDK" width="50" height="50"/><br/>
+      Android SDK
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/><br/>
+      Unity
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/><br/>
+      OpenCV
+    </td>
+  </tr>
+</table>
 
 
 
