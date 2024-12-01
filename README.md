@@ -18,16 +18,44 @@
 ## ⚙️ 개발 환경
 
 ### 개발 언어
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="JAVA" width="50" height="50"/> JAVA  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg" alt="Kotlin" width="50" height="50"/> Kotlin  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" width="50" height="50"/> Python  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" alt="C#" width="50" height="50"/> C#  
+<div style="display: flex; align-items: center;">
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="JAVA" width="50" height="50"/>
+    <p>JAVA</p>
+  </div>
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg" alt="Kotlin" width="50" height="50"/>
+    <p>Kotlin</p>
+  </div>
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" width="50" height="50"/>
+    <p>Python</p>
+  </div>
+  <div style="text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" alt="C#" width="50" height="50"/>
+    <p>C#</p>
+  </div>
+</div>
 
 ### 개발 도구
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Spring" width="50" height="50"/> Spring  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg" alt="Android SDK" width="50" height="50"/> Android SDK  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/> Unity  
-- <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/> OpenCV  
+<div style="display: flex; align-items: center;">
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Spring" width="50" height="50"/>
+    <p>Spring</p>
+  </div>
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg" alt="Android SDK" width="50" height="50"/>
+    <p>Android SDK</p>
+  </div>
+  <div style="margin-right: 20px; text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/>
+    <p>Unity</p>
+  </div>
+  <div style="text-align: center;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/>
+    <p>OpenCV</p>
+  </div>
+</div>
 
 
 ## 📆 프로젝트 일정
