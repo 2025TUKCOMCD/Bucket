@@ -16,12 +16,23 @@
 ![](https://github.com/user-attachments/assets/b1693ef8-0dc4-4a4e-bd49-4405dfa5ad0e)
 
 ## ⚙️ 개발 환경
-- **개발언어**: JAVA, Kotlin, Python, C#
-- **사용 프레임워크**: 
-  - 백엔드: Spring
-  - 안드로이드: Android SDK
-  - 게임/그래픽: Unity, OpenCV
-- **개발방법론 (옵션)**: 애자일
+
+<head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+</head>
+
+### 개발 언어
+- <i class="devicon-java-plain" style="font-size:40px;"></i> JAVA  
+- <i class="devicon-kotlin-plain" style="font-size:40px;"></i> Kotlin  
+- <i class="devicon-python-plain" style="font-size:40px;"></i> Python  
+- <i class="devicon-csharp-plain" style="font-size:40px;"></i> C#  
+
+### 개발 도구
+- <i class="devicon-spring-plain" style="font-size:40px;"></i> Spring  
+- <i class="devicon-android-plain" style="font-size:40px;"></i> Android SDK  
+- <i class="devicon-unity-original" style="font-size:40px;"></i> Unity  
+- <i class="devicon-opencv-plain" style="font-size:40px;"></i> OpenCV  
+
 
 ## 📆 프로젝트 일정
 ![수행일정](https://github.com/user-attachments/assets/f4767fae-9ab9-4e59-8ce5-3636536dbffb)
