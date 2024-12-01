@@ -18,7 +18,7 @@
 ## ⚙️ 개발 환경
 
 ### 개발 언어
-<div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+<div style="display: flex; align-items: center; gap: 40px; flex-wrap: nowrap;">
   <div style="text-align: center;">
     <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" alt="Java" width="40" height="40"/>
     <p>JAVA</p>
@@ -38,7 +38,7 @@
 </div>
 
 ### 사용 프레임워크
-<div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+<div style="display: flex; align-items: center; gap: 40px; flex-wrap: nowrap;">
   <div style="text-align: center;">
     <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Spring" width="40" height="40"/>
     <p>Spring</p>
@@ -56,7 +56,6 @@
     <p>OpenCV</p>
   </div>
 </div>
-
 
 
 
