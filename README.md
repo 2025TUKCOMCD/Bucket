@@ -16,6 +16,13 @@
 ![](https://github.com/user-attachments/assets/b1693ef8-0dc4-4a4e-bd49-4405dfa5ad0e)
 
 ## ⚙️ 개발 환경
+- **개발언어**: JAVA, Kotlin, Python, C#
+- **사용 프레임워크**: 
+  - 백엔드: Spring
+  - 안드로이드: Android SDK
+  - 게임/그래픽: Unity, OpenCV
+- **개발방법론 (옵션)**: 애자일
+
 
 
 ## 📆 프로젝트 일정
