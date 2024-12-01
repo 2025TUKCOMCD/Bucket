@@ -17,21 +17,17 @@
 
 ## ⚙️ 개발 환경
 
-<head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
-</head>
-
 ### 개발 언어
-- <i class="devicon-java-plain" style="font-size:40px;"></i> JAVA  
-- <i class="devicon-kotlin-plain" style="font-size:40px;"></i> Kotlin  
-- <i class="devicon-python-plain" style="font-size:40px;"></i> Python  
-- <i class="devicon-csharp-plain" style="font-size:40px;"></i> C#  
+- ![JAVA](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg) JAVA  
+- ![Kotlin](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg) Kotlin  
+- ![Python](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg) Python  
+- ![C#](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg) C#  
 
 ### 개발 도구
-- <i class="devicon-spring-plain" style="font-size:40px;"></i> Spring  
-- <i class="devicon-android-plain" style="font-size:40px;"></i> Android SDK  
-- <i class="devicon-unity-original" style="font-size:40px;"></i> Unity  
-- <i class="devicon-opencv-plain" style="font-size:40px;"></i> OpenCV  
+- ![Spring](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg) Spring  
+- ![Android SDK](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/android/android-original.svg) Android SDK  
+- ![Unity](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg) Unity  
+- ![OpenCV](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg) OpenCV  
 
 
 ## 📆 프로젝트 일정
