@@ -19,4 +19,5 @@
 
 
 ## 📆 프로젝트 일정
-![image](https://github.com/user-attachments/assets/49d9a06a-355f-49f2-991d-792fd8e92316)
+![수행일정](https://github.com/user-attachments/assets/f4767fae-9ab9-4e59-8ce5-3636536dbffb)
+
