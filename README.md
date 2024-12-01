@@ -16,12 +16,18 @@
 ![](https://github.com/user-attachments/assets/b1693ef8-0dc4-4a4e-bd49-4405dfa5ad0e)
 
 ## ⚙️ 개발 환경
-- **개발언어**: JAVA, Kotlin, Python, C#
-- **사용 프레임워크**: 
-  - 백엔드: Spring
-  - 안드로이드: Android SDK
-  - 게임/그래픽: Unity, OpenCV
-- **개발방법론 (옵션)**: 애자일
+
+### 개발 언어
+<img src="assets/icons/java.png" alt="JAVA" width="40" height="40"/> 
+<img src="assets/icons/kotlin.png" alt="Kotlin" width="40" height="40"/> 
+<img src="assets/icons/python.png" alt="Python" width="40" height="40"/> 
+<img src="assets/icons/csharp.png" alt="C#" width="40" height="40"/>
+
+### 개발 도구
+<img src="assets/icons/spring.png" alt="Spring" width="40" height="40"/> 
+<img src="assets/icons/androidsdk.png" alt="Android SDK" width="40" height="40"/> 
+<img src="assets/icons/unity.png" alt="Unity" width="40" height="40"/> 
+<img src="assets/icons/opencv.png" alt="OpenCV" width="40" height="40"/>
 
 
 
