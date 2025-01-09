@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\DongGyunYang\\Desktop\\AR\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0C7C4CA8-9288-DD9E-4A49-73A36F7C8402}|NRSDK.csproj|c:\\users\\donggyunyang\\desktop\\ar\\assets\\nrsdk\\nrsdk.asmdef||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{0C7C4CA8-9288-DD9E-4A49-73A36F7C8402}|NRSDK.csproj|solutionrelative:assets\\nrsdk\\nrsdk.asmdef||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "NRSDK.asmdef",
+              "DocumentMoniker": "C:\\Users\\DongGyunYang\\Desktop\\AR\\Assets\\NRSDK\\NRSDK.asmdef",
+              "RelativeDocumentMoniker": "Assets\\NRSDK\\NRSDK.asmdef",
+              "ToolTip": "C:\\Users\\DongGyunYang\\Desktop\\AR\\Assets\\NRSDK\\NRSDK.asmdef",
+              "RelativeToolTip": "Assets\\NRSDK\\NRSDK.asmdef",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001874|",
+              "WhenOpened": "2025-01-09T14:34:39.634Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

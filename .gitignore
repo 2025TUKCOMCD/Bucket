@@ -1,0 +1,56 @@
+# 공통 파일 및 운영 체제별 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE 및 에디터 관련
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln
+*.swp
+
+# 빌드 아티팩트 및 캐시
+Build/
+Temp/
+Library/
+Logs/
+obj/
+*.ilk
+*.pdb
+*.ipch
+*.aps
+*.ncb
+*.obj
+*.pch
+*.idb
+*.class
+*.pyc
+*.pyo
+
+# Unity 관련
+/Library/
+/Temp/
+/Logs/
+/MemoryCaptures/
+*.csproj
+*.unityproj
+*.sln
+*.userprefs
+*.pidb
+*.booproj
+/Assets/Plugins/Editor/
+
+# Unity 빌드 파일
+*.apk
+*.aab
+*.unitypackage
+
+# 환경 설정 파일
+/ProjectSettings/
+/UserSettings/
+/Packages/manifest.json
+/Packages/packages-lock.json
