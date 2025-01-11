@@ -39,7 +39,7 @@
   </tr>
 </table>
 
-### 사용 프레임워크
+### 프레임워크(라이브러리)
 <table>
   <tr>
     <td style="text-align: center;">
@@ -51,24 +51,65 @@
       Android SDK
     </td>
     <td style="text-align: center;">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/><br/>
-      Unity
-    </td>
-    <td style="text-align: center;">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/><br/>
       OpenCV
     </td>
   </tr>
 </table>
 
-### 툴
+### 데이터베이스
 <table>
   <tr>
-    
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL" width="50" height="50"/><br/>
+      MySQL
+    </td>
+    <td style="text-align: center;">
+      <img src= "https://github.com/user-attachments/assets/6959e7d6-3228-43d7-b247-af2a0aeb44a1" alt="AWS RDS" width="50" height="50"/><br/>
+      AWS RDS
+    </td>
   </tr>
 </table>
 
+### DevOps
+<table>
+  <tr>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="50" height="50"/><br/>
+      Docker
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub Actions" width="50" height="50"/><br/>
+      GitHub Actions
+    </td>
+    <td style="text-align: center;">
+      <img src="https://github.com/user-attachments/assets/ef7c942d-fb9a-45ef-9269-f24e6784424e" alt="AWS EC2" width="50" height="50"/><br/>
+      AWS EC2
+    </td>
+  </tr>
+</table>
 
+### 개발 툴
+<table>
+    <tr>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/intellij/intellij-original.svg" alt="IntelliJ IDEA" width="50" height="50"/><br/>
+      IntelliJ IDEA
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/><br/>
+      Unity
+    </td>
+      <td style="text-align: center;">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" alt="Visual Studio Code" width="50" height="50"/><br/>
+      Visual Studio Code
+    </td>
+    <td style="text-align: center;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/androidstudio/androidstudio-original.svg" alt="Android Studio" width="50" height="50"/><br/>
+      Android Studio
+    </td>
+  </tr>
+</table>
 
 
 ## 📆 프로젝트 일정
