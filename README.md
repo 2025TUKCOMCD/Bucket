@@ -49,6 +49,10 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/><br/>
       OpenCV
     </td>
+    <td style="text-align: center;">
+      <img src="https://github.com/user-attachments/assets/a719fe97-e3ce-4b12-b318-1fee12b24f3b" alt="NRSDK" width="50" height="50"/><br/>
+      NRSDK
+    </td>
   </tr>
 </table>
 
