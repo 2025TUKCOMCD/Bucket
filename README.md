@@ -6,6 +6,10 @@
 스마트글래스를 활용하여 사용자의 운동 자세를 실시간으로 분석하고 피드백을 제공하는 AR 피트니스 보조 서비스입니다.
 본 프로젝트는 사용자가 강의 영상과 자신의 운동 자세를 비교할 수 있도록 하며, 올바른 자세 정보를 제공하여 운동 자세 교정에 도움을 줍니다.
 
+## 📁 개발 시스템 구성도
+
+![](https://github.com/user-attachments/assets/b1693ef8-0dc4-4a4e-bd49-4405dfa5ad0e)
+
 ## ⚙️ 개발 환경
 
 ### 개발 언어
@@ -30,7 +34,7 @@
   </tr>
 </table>
 
-### 프레임워크(라이브러리)
+### 프레임워크
 <table>
   <tr>
     <td style="text-align: center;">
@@ -42,8 +46,12 @@
       Android SDK
     </td>
     <td style="text-align: center;">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" alt="OpenCV" width="50" height="50"/><br/>
-      OpenCV
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg" alt="TensorFlow" width="50" height="50"/><br/>
+      TensorFlow
+    </td>
+    <td style="text-align: center;">
+      <img src="https://github.com/user-attachments/assets/a719fe97-e3ce-4b12-b318-1fee12b24f3b" alt="NRSDK" width="50" height="50"/><br/>
+      NRSDK
     </td>
   </tr>
 </table>
@@ -102,15 +110,11 @@
   </tr>
 </table>
 
-## 📁 개발 시스템 구성도
-
-![](https://github.com/user-attachments/assets/b1693ef8-0dc4-4a4e-bd49-4405dfa5ad0e)
-
 ## 📆 프로젝트 일정
 ![수행일정](https://github.com/user-attachments/assets/f4767fae-9ab9-4e59-8ce5-3636536dbffb)
 
 ## 🚨 정기회의 🚨
-- 목요일 21시 00분
+- 목요일 21시
 
 - ## 팀원
 |                      이예권                       |                        김동일                         |                     양동균                          |  
