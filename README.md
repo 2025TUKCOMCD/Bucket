@@ -113,6 +113,9 @@
 ## 📆 프로젝트 일정
 ![수행일정](https://github.com/user-attachments/assets/f4767fae-9ab9-4e59-8ce5-3636536dbffb)
 
+## daily scrum
+<a href="https://www.notion.so/17cc276100e580839698f60919c81ecb?v=17cc276100e58141b4ca000cfb89684d&pvs=4">daily scrum</a>
+
 ## 🚨 정기회의 🚨
 - 목요일 21시
 
