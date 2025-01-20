@@ -1,7 +1,11 @@
 package com.bucket.backend.repository;
 
-import com.bucket.backend.model.user_videos;
+import com.bucket.backend.model.UserVideo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserVideoRepository extends JpaRepository<user_videos, Integer> {
+import java.util.List;
+
+public interface UserVideoRepository extends JpaRepository<UserVideo, Integer> {
+    List<UserVideo> findByUserid(int userid);
+
 }
