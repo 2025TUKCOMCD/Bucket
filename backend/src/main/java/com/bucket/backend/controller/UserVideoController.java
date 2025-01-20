@@ -6,10 +6,9 @@ package com.bucket.backend.controller;
 import com.bucket.backend.model.UserVideo;
 import com.bucket.backend.service.UserVideoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/user-videos")
@@ -21,10 +20,26 @@ public class UserVideoController {
         this.userVideoService = userVideoService;
     }
 
+    //운동 영상 업로드
     @PostMapping
     public ResponseEntity<?> uploadVideo(@RequestBody UserVideo video){
         UserVideo saveVideo = userVideoService.saveUserVideo(video);
-        return ResponseEntity.ok().body(saveVideo);
+        return ResponseEntity.ok().body(
+                new ApiResponse(saveVideo.getVid(), "운동 기록 데이터가 성공적으로 업로드 되었습니다.")
+        );
+    }
 
+    // 사용자별 운동 기록 조회
+    @GetMapping("/{uid}")
+    public ResponseEntity<List<UserVideo>> getUserVideo(@PathVariable int uid){
+        List<UserVideo> videos = userVideoService.getVideoByUid(uid);
+        return ResponseEntity.ok(videos);
+    }
+
+    // 운동 기록 상세 조회
+    @GetMapping("/details/{vid}")
+    public ResponseEntity<UserVideo> getUserVideoDetail(@PathVariable int vid){
+        UserVideo video = userVideoService.getUserVideoDetail(vid);
+        return ResponseEntity.ok().body(video);
     }
 }
