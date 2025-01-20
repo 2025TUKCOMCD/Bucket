@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 
 //Lombok
@@ -22,7 +22,7 @@ public class user_videos {
     private String sportname;
 
     @Column(nullable = false, length = 20)
-    private Date recordDate;
+    private LocalDate recordDate;
 
     @Column(length = 40)
     private String video_url;

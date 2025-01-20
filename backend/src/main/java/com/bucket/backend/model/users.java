@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 //Lombok
 @Getter
@@ -20,7 +20,7 @@ public class users {
     @Column(nullable = false, length = 20)
     private String username;
 
-    private Date birthday;
+    private LocalDate birthday;
 
     @Column(nullable = false, unique = true, length = 20)
     private String id;
