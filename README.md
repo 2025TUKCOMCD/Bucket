@@ -110,6 +110,17 @@
   </tr>
 </table>
 
+### 테스트 도구
+<table>
+  <tr>
+    <td style="text-align: center;">
+      <img src="https://github.com/user-attachments/assets/4abbc76c-6299-4d81-a7d8-57a79825b234" alt="Postman" width="50" height="50"/><br/>
+      Postman
+    </td>
+  </tr>
+</table>
+
+
 ## 📆 프로젝트 일정
 ![수행일정](https://github.com/user-attachments/assets/f4767fae-9ab9-4e59-8ce5-3636536dbffb)
 
