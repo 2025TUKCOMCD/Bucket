@@ -31,7 +31,7 @@ public class UserVideo {
     private String feedback;
 
     @ManyToOne  //user 테이블과의 관계 N:1
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "uid", nullable = false)
     private users user;
 
 
