@@ -24,8 +24,8 @@ public class UserVideo {
     @Column(nullable = false, length = 20)
     private LocalDate recordDate;
 
-    @Column(length = 40)
-    private String video_url;
+    @Column(name="video_url", length = 40)
+    private String videoUrl;
 
     @Column(length = 200)
     private String feedback;
