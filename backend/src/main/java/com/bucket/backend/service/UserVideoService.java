@@ -1,11 +1,13 @@
 package com.bucket.backend.service;
 
 import com.bucket.backend.model.UserVideo;
+import com.bucket.backend.model.users;
 import com.bucket.backend.repository.UserRepository;
 import com.bucket.backend.repository.UserVideoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserVideoService {
@@ -28,14 +30,12 @@ public class UserVideoService {
     }
 
     // 사용자별 운동 기록 조회
-    public List<UserVideo> getVideoByUid(int uid) {
-        return userVideoRepository.findByUserid(uid);
+    public List<UserVideo> getVideoByUid(users uid) {
+        return userVideoRepository.findByUser(uid);
     }
 
     //운동 기록 상세 조회
-    public UserVideo getUserVideoDetail(int vid) {
-        return (UserVideo) userVideoRepository.findByUserid(vid);
+    public Optional<UserVideo> getUserVideoDetail(int vid) {
+        return userVideoRepository.findById(vid);
     }
-
-    
 }

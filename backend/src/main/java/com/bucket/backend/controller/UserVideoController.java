@@ -1,15 +1,17 @@
 package com.bucket.backend.controller;
 
 
-//유저 비디오 관련 Controller
 
 import com.bucket.backend.model.UserVideo;
+import com.bucket.backend.model.users;
 import com.bucket.backend.service.UserVideoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
+//유저 비디오 관련 Controller
 @RestController
 @RequestMapping("api/user-videos")
 public class UserVideoController {
@@ -31,15 +33,15 @@ public class UserVideoController {
 
     // 사용자별 운동 기록 조회
     @GetMapping("/{uid}")
-    public ResponseEntity<List<UserVideo>> getUserVideo(@PathVariable int uid){
+    public ResponseEntity<List<UserVideo>> getUserVideo(@PathVariable users uid){
         List<UserVideo> videos = userVideoService.getVideoByUid(uid);
         return ResponseEntity.ok(videos);
     }
 
     // 운동 기록 상세 조회
     @GetMapping("/details/{vid}")
-    public ResponseEntity<UserVideo> getUserVideoDetail(@PathVariable int vid){
-        UserVideo video = userVideoService.getUserVideoDetail(vid);
+    public ResponseEntity<Optional<UserVideo>> getUserVideoDetail(@PathVariable int vid){
+        Optional<UserVideo> video = userVideoService.getUserVideoDetail(vid);
         return ResponseEntity.ok().body(video);
     }
 }
