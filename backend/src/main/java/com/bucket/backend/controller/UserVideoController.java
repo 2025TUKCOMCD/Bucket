@@ -53,5 +53,11 @@ public class UserVideoController {
         return ResponseEntity.noContent().build(); //code 204 -> 클라이언트 요청은 정상적으로 처리되었지만 컨텐츠 제공은 X
     }
 
+    @PutMapping("/{vid}")
+    public ResponseEntity<?> updateUserVideo(@PathVariable int vid, @RequestBody UserVideo video){
+        UserVideo updateVideo = userVideoService.updateUserVideo(vid, video);
+        return ResponseEntity.ok().body(updateVideo);
+    }
+
 
 }
