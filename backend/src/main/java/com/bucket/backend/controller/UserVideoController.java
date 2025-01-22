@@ -35,7 +35,8 @@ public class UserVideoController {
     @GetMapping("/{uid}")
     public ResponseEntity<List<UserVideo>> getUserVideo(@PathVariable users uid){
         List<UserVideo> videos = userVideoService.getVideoByUid(uid);
-        return ResponseEntity.ok(videos);
+        return ResponseEntity.ok(videos); //성공을 의미하는 OK(code 200)
+        //ResponseEntity: HTTP 응답을 나타내는 spring framework의 클래스 -> 요청에 대한 응답의 상태 코드를 포함하여 클라이언트에게 전달한다.
     }
 
     // 운동 기록 상세 조회
@@ -44,4 +45,13 @@ public class UserVideoController {
         Optional<UserVideo> video = userVideoService.getUserVideoDetail(vid);
         return ResponseEntity.ok().body(video);
     }
+
+
+    @DeleteMapping("/{vid}")
+    public ResponseEntity<?> deleteUserVideo(@PathVariable int vid, @RequestBody UserVideo video){
+        userVideoService.deleteUserVideo(vid);
+        return ResponseEntity.noContent().build(); //code 204 -> 클라이언트 요청은 정상적으로 처리되었지만 컨텐츠 제공은 X
+    }
+
+
 }
