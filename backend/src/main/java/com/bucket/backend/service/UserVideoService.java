@@ -38,4 +38,29 @@ public class UserVideoService {
     public Optional<UserVideo> getUserVideoDetail(int vid) {
         return userVideoRepository.findById(vid);
     }
+    // Optimal : NPE(NullPointerException)을 방지하게 도와주는 Wrapper 클래스 -> 참조하더라도 NPE가 발생하지 않도록 도와준다.
+
+    //운동 기록 삭제
+    public void deleteUserVideo(int vid){
+        Optional<UserVideo> userVideo = userVideoRepository.findById(vid);
+        if(userVideo.isPresent()){
+            userVideoRepository.deleteById(vid);
+        } else {
+            throw new IllegalArgumentException(vid+"의 vid를 찾을 수 없습니다.");
+        }
+    }
+    //운동 기록 수정
+    public UserVideo updateUserVideo(int vid, UserVideo userVideo) {
+        Optional<UserVideo> updateVideo = userVideoRepository.findById(vid);
+        if(updateVideo.isPresent()){
+            updateVideo.get().setFeedback(userVideo.getFeedback());
+            updateVideo.get().setSportname(userVideo.getSportname());
+            updateVideo.get().setRecordDate(userVideo.getRecordDate());
+            updateVideo.get().setVideoUrl(userVideo.getVideoUrl());
+        } else {
+            throw new IllegalArgumentException(vid+"의 vid를 찾을 수 없습니다.");
+        }
+        return userVideoRepository.save(updateVideo.get());
+    }
+
 }
