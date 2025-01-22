@@ -49,5 +49,18 @@ public class UserVideoService {
             throw new IllegalArgumentException(vid+"의 vid를 찾을 수 없습니다.");
         }
     }
+    //운동 기록 수정
+    public UserVideo updateUserVideo(int vid, UserVideo userVideo) {
+        Optional<UserVideo> updateVideo = userVideoRepository.findById(vid);
+        if(updateVideo.isPresent()){
+            updateVideo.get().setFeedback(userVideo.getFeedback());
+            updateVideo.get().setSportname(userVideo.getSportname());
+            updateVideo.get().setRecordDate(userVideo.getRecordDate());
+            updateVideo.get().setVideoUrl(userVideo.getVideoUrl());
+        } else {
+            throw new IllegalArgumentException(vid+"의 vid를 찾을 수 없습니다.");
+        }
+        return userVideoRepository.save(updateVideo.get());
+    }
 
 }
