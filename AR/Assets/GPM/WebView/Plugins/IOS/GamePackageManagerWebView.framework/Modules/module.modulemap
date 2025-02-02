@@ -1,6 +1,0 @@
-framework module GamePackageManagerWebView {
-  umbrella header "GamePackageManagerWebView.h"
-  export *
-
-  module * { export * }
-}

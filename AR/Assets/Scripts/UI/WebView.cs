@@ -1,4 +1,4 @@
-using System.Collections;
+/*using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Gpm.WebView;
@@ -104,3 +104,4 @@ public class WebView : MonoBehaviour
         }
     }
 }
+*/

@@ -62,9 +62,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/NRSDK/Demos/XR-SinglePassStereoRendering.unity
     guid: 3d16adcca69a7443781c96d7ff63cdce
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MainScene.unity
     guid: a9df08c03d8955741bf620e70b2450bf
+  - enabled: 1
+    path: Assets/Scenes/PTScene.unity
+    guid: 0ad118020eaf7304ab7eb7312b522921
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 3ccff12f790a2ad45b5e763bbdf37631, type: 2}
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: a2eb6f8d6eaa71e4085235fc4934e58c, type: 2}
