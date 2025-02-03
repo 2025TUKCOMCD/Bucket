@@ -7,11 +7,19 @@ public class WebViewGree : MonoBehaviour
 
     private WebViewObject webViewObject;
     public RectTransform webViewPanel;  //Panel의 위치 정보 가져오기
+    private string webPageURL = "https://www.naver.com";
 
     // Start is called before the first frame update
     void Start()
     {
-        OpenWebPage();
+        //OpenWebPage();
+        OpenWebBroserPage();
+    }
+
+    public void OpenWebBroserPage()
+    {
+        Application.OpenURL(webPageURL);
+        Debug.Log("버튼 테스트");
     }
 
     public void OpenWebPage()
