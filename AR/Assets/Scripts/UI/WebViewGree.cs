@@ -12,8 +12,8 @@ public class WebViewGree : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //OpenWebPage();
-        OpenWebBroserPage();
+        OpenWebPage();
+        //OpenWebBroserPage();
     }
 
     public void OpenWebBroserPage()
@@ -74,6 +74,6 @@ public class WebViewGree : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        OpenWebPage();
     }
 }
