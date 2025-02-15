@@ -1,0 +1,28 @@
+package com.bucket.backend.websocket;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+
+
+// AI모델과 Websocket 서버와 연결하여 데이터를 주고받는 Websocket 클라이언트
+public class WebSocket {
+    private static final Logger log = LoggerFactory.getLogger(WebSocket.class);
+    private static Session aiSession;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    //AI모델과 Websocket의 연결 설정
+    public WebSocket(){
+        try {
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            aiSession = container.connectToServer(this, new URI("ws://ai-server:5000/ws/analyze"));
+        } catch(Exception e){
+            log.error("error",e);
+        }
+    }
+}
