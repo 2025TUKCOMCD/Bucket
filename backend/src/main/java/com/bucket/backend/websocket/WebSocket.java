@@ -7,6 +7,7 @@ import jakarta.websocket.WebSocketContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 
 
@@ -24,5 +25,10 @@ public class WebSocket {
         } catch(Exception e){
             log.error("error",e);
         }
+    }
+
+    //Ai모델에 데이터를 전송하는 메소드 (질문 답변 받으면 추가할 예쩡
+    public void sendToAI() throws IOException{
+
     }
 }
