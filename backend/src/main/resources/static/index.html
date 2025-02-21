@@ -1,10 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>workout screen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        /* 전체 높이를 채우도록 설정 */
+        .full-height {
+            height: calc(100vh - 32px); /* padding 고려하여 계산 */
+        }
+    </style>
 </head>
-<body>
-<h1>AR 연결 테스트 화면</h1>
+<body class="bg-white flex flex-col items-center justify-center min-h-screen p-4">
+<div class="w-full h-full bg-gray-100 p-6 rounded-lg shadow-md flex flex-col">
+    <!-- 비디오 컨테이너 -->
+    <div class="flex-1 flex flex-row gap-4">
+        <div class="flex-1 bg-white flex items-center justify-center text-lg font-semibold rounded-lg aspect-video">
+            Video 1
+        </div>
+        <div class="flex-1 bg-white flex items-center justify-center text-lg font-semibold rounded-lg aspect-video">
+            Video 2
+        </div>
+    </div>
+    <!-- 결과 컨테이너 -->
+    <div class="w-full h-1/6 bg-white flex items-center justify-center text-lg font-semibold rounded-lg mt-4">
+        Text Result
+    </div>
+</div>
 </body>
 </html>
