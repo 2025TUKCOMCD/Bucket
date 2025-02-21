@@ -1,6 +1,7 @@
 package com.bucket.backend.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.ContainerProvider;
 import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
@@ -12,6 +13,7 @@ import java.net.URI;
 
 
 // AI모델과 Websocket 서버와 연결하여 데이터를 주고받는 Websocket 클라이언트
+@ClientEndpoint
 public class WebSocket {
     private static final Logger log = LoggerFactory.getLogger(WebSocket.class);
     private static Session aiSession;
@@ -29,8 +31,9 @@ public class WebSocket {
         }
     }
 
-    //Ai모델에 데이터를 전송하는 메소드 (질문 답변 받으면 추가할 예쩡
-    public void sendToAI() throws IOException{
-
+    //Ai모델에 데이터를 전송하는 메소드 (질문 답변 받으면 추가할 예쩡)
+    public void sendToAI(String jsons) throws IOException{
+        //메시지 전송
+        aiSession.getBasicRemote().sendText(jsons);
     }
 }
