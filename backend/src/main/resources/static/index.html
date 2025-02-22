@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>workout screen</title>
+    <title>Workout Screen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-        }
-        /* 전체 높이를 채우도록 설정 */
-        .full-height {
-            height: calc(100vh - 32px); /* padding 고려하여 계산 */
         }
     </style>
 </head>
@@ -19,17 +15,138 @@
 <div class="w-full h-full bg-gray-100 p-6 rounded-lg shadow-md flex flex-col">
     <!-- 비디오 컨테이너 -->
     <div class="flex-1 flex flex-row gap-4">
-        <div class="flex-1 bg-white flex items-center justify-center text-lg font-semibold rounded-lg aspect-video">
-            Video 1
-        </div>
-        <div class="flex-1 bg-white flex items-center justify-center text-lg font-semibold rounded-lg aspect-video">
-            Video 2
-        </div>
+        <!-- 스트리밍 영상 표시를 위한 video 태그 -->
+        <video id="video1" class="flex-1 rounded-lg aspect-video" autoplay playsinline controls></video>
+        <video id="video2" class="flex-1 rounded-lg aspect-video" autoplay playsinline controls></video>
     </div>
     <!-- 결과 컨테이너 -->
-    <div class="w-full h-1/6 bg-white flex items-center justify-center text-lg font-semibold rounded-lg mt-4">
+    <div class="w-full h-1/6 bg-white flex items-center justify-center text-lg font-semibold rounded-lg mt-4" id="result">
+        <!-- 스트리밍 관련 상태나 결과 메시지 출력 -->
         Text Result
     </div>
 </div>
+
+<script>
+    // 예시: 시그널링 서버 URL (실제 도메인과 포트로 교체)
+    const signalingUrl = 'ws://192.168.35.153:8080/ws/signaling';
+
+    const connection = new WebSocket(signalingUrl);
+
+    let peerConnection;
+    const config = {
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    };
+
+    // video 요소 선택
+    const video1 = document.getElementById('video1');
+    const video2 = document.getElementById('video2');
+    const resultDiv = document.getElementById('result');
+
+    connection.onopen = () => {
+        console.log('시그널링 서버에 연결됨');
+        createPeerConnection();
+        // 필요시 offer 생성: createOffer();
+    };
+
+    connection.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        console.log('수신한 시그널링 메시지:', data);
+
+        if (data.type === 'offer') {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            peerConnection.createAnswer().then(answer => {
+                return peerConnection.setLocalDescription(answer);
+            }).then(() => {
+                connection.send(JSON.stringify(peerConnection.localDescription));
+            });
+        } else if (data.type === 'answer') {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+        } else if (data.type === 'candidate') {
+            // RTCIceCandidateInit 객체로 구성하여 생성
+            const candidateInit = {
+                candidate: data.candidate,
+                sdpMid: data.sdpMid,
+                sdpMLineIndex: typeof data.sdpMLineIndex === 'string' ? Number(data.sdpMLineIndex) : data.sdpMLineIndex
+            };
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
+        }
+    };
+
+
+    function createPeerConnection() {
+        peerConnection = new RTCPeerConnection(config);
+
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                connection.send(JSON.stringify({
+                    type: 'candidate',
+                    candidate: event.candidate
+                }));
+            }
+        };
+
+        // 수신 스트림 처리
+        peerConnection.ontrack = event => {
+            // 여기서는 첫 번째 video 태그에 연결된 스트림을 할당하는 예시입니다.
+            // 만약 두 개의 스트림을 따로 처리해야 한다면 추가 로직이 필요합니다.
+            video1.srcObject = event.streams[0];
+        };
+
+        //로컬 미디어 스트림을 추가하는 경우 (예, 카메라 캡처)
+         //navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+           //.then(stream => {
+            //stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+            // 로컬 스트림을 video2에 표시하거나 별도로 처리 가능
+            //video2.srcObject = stream;
+          //})
+           //.catch(error => console.error('getUserMedia 에러:', error));
+    }
+
+    // 예시: 클라이언트가 offer를 생성하는 경우
+    function createOffer() {
+        peerConnection.createOffer().then(offer => {
+            return peerConnection.setLocalDescription(offer);
+        }).then(() => {
+            connection.send(JSON.stringify(peerConnection.localDescription));
+        });
+    }
+</script>
 </body>
 </html>
+<script>
+    (function() {
+        var ws = new WebSocket('ws://' + window.location.host +
+            '/jb-server-page?reloadMode=RELOAD_ON_SAVE&'+
+            'referrer=' + encodeURIComponent(window.location.pathname));
+        ws.onmessage = function (msg) {
+            if (msg.data === 'reload') {
+                window.location.reload();
+            }
+            if (msg.data.startsWith('update-css ')) {
+                var messageId = msg.data.substring(11);
+                var links = document.getElementsByTagName('link');
+                for (var i = 0; i < links.length; i++) {
+                    var link = links[i];
+                    if (link.rel !== 'stylesheet') continue;
+                    var clonedLink = link.cloneNode(true);
+                    var newHref = link.href.replace(/(&|\?)jbUpdateLinksId=\d+/, "$1jbUpdateLinksId=" + messageId);
+                    if (newHref !== link.href) {
+                        clonedLink.href = newHref;
+                    }
+                    else {
+                        var indexOfQuest = newHref.indexOf('?');
+                        if (indexOfQuest >= 0) {
+                            // to support ?foo#hash
+                            clonedLink.href = newHref.substring(0, indexOfQuest + 1) + 'jbUpdateLinksId=' + messageId + '&' +
+                                newHref.substring(indexOfQuest + 1);
+                        }
+                        else {
+                            clonedLink.href += '?' + 'jbUpdateLinksId=' + messageId;
+                        }
+                    }
+                    link.replaceWith(clonedLink);
+                }
+            }
+        };
+    })();
+</script>
