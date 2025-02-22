@@ -27,10 +27,13 @@
 </div>
 
 <script>
-    // 예시: 시그널링 서버 URL (실제 도메인과 포트로 교체)
-    const signalingUrl = 'ws://192.168.35.153:8080/ws/signaling';
+    // 시그널링 서버 URL
+    const signalingUrl = 'ws://192.168.35.153:8080/';
+    const signalingConnection = new WebSocket(signalingUrl);
 
-    const connection = new WebSocket(signalingUrl);
+    // 포즈 데이터 전용 URL
+    const poseUrl = 'ws://192.168.35.153:8080/ws/pose';
+    const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
     const config = {
@@ -42,13 +45,15 @@
     const video2 = document.getElementById('video2');
     const resultDiv = document.getElementById('result');
 
-    connection.onopen = () => {
+    // 시그널링 연결 이벤트
+    signalingConnection.onopen = () => {
         console.log('시그널링 서버에 연결됨');
         createPeerConnection();
-        // 필요시 offer 생성: createOffer();
+        // 필요시 Offer 생성 호출 (아래 getUserMedia 부분을 활성화할 경우)
+        // createOffer();
     };
 
-    connection.onmessage = (message) => {
+    signalingConnection.onmessage = (message) => {
         const data = JSON.parse(message.data);
         console.log('수신한 시그널링 메시지:', data);
 
@@ -57,12 +62,11 @@
             peerConnection.createAnswer().then(answer => {
                 return peerConnection.setLocalDescription(answer);
             }).then(() => {
-                connection.send(JSON.stringify(peerConnection.localDescription));
+                signalingConnection.send(JSON.stringify(peerConnection.localDescription));
             });
         } else if (data.type === 'answer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
         } else if (data.type === 'candidate') {
-            // RTCIceCandidateInit 객체로 구성하여 생성
             const candidateInit = {
                 candidate: data.candidate,
                 sdpMid: data.sdpMid,
@@ -72,45 +76,57 @@
         }
     };
 
+    // 포즈 데이터 연결 이벤트
+    poseConnection.onopen = () => {
+        console.log('포즈 데이터 서버에 연결됨');
+    };
+
+    poseConnection.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        console.log('수신한 포즈 데이터:', data);
+        // 여기에 포즈 데이터를 활용하여 화면 오버레이 업데이트 등 필요한 처리를 추가하세요.
+    };
 
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection(config);
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
-                connection.send(JSON.stringify({
+                signalingConnection.send(JSON.stringify({
                     type: 'candidate',
                     candidate: event.candidate
                 }));
             }
         };
 
-        // 수신 스트림 처리
+        // 원격 스트림 수신 시 video1에 할당
         peerConnection.ontrack = event => {
-            // 여기서는 첫 번째 video 태그에 연결된 스트림을 할당하는 예시입니다.
-            // 만약 두 개의 스트림을 따로 처리해야 한다면 추가 로직이 필요합니다.
             video1.srcObject = event.streams[0];
         };
 
-        //로컬 미디어 스트림을 추가하는 경우 (예, 카메라 캡처)
-         //navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-           //.then(stream => {
-            //stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-            // 로컬 스트림을 video2에 표시하거나 별도로 처리 가능
-            //video2.srcObject = stream;
-          //})
-           //.catch(error => console.error('getUserMedia 에러:', error));
+        // 로컬 미디어 스트림 추가 (카메라 캡처 등)
+        // 필요시 주석을 해제하세요.
+        /*
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                video2.srcObject = stream;
+                // Offer 생성: 필요 시 호출
+                // createOffer();
+            })
+            .catch(error => console.error('getUserMedia 에러:', error));
+        */
     }
 
-    // 예시: 클라이언트가 offer를 생성하는 경우
     function createOffer() {
         peerConnection.createOffer().then(offer => {
             return peerConnection.setLocalDescription(offer);
         }).then(() => {
-            connection.send(JSON.stringify(peerConnection.localDescription));
+            signalingConnection.send(JSON.stringify(peerConnection.localDescription));
         });
     }
 </script>
+
 </body>
 </html>
 <script>

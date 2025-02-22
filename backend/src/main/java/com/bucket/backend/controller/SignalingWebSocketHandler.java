@@ -31,30 +31,33 @@ public class SignalingWebSocketHandler extends TextWebSocketHandler {
             JsonNode jsonNode = objectMapper.readTree(payload);
             String type = jsonNode.has("type") ? jsonNode.get("type").asText() : "";
 
+            // "pose" 타입 메시지는 시그널링에서는 처리하지 않음
             if ("pose".equals(type)) {
-                System.out.println("MediaPipe 포즈 데이터 수신: " + jsonNode.toString());
-            } else {
-                switch (type) {
-                    case "offer":
-                        System.out.println("offer 수신");
-                        break;
-                    case "answer":
-                        System.out.println("answer 수신");
-                        break;
-                    case "candidate":
-                        System.out.println("ICE candidate 수신");
-                        break;
-                    default:
-                        System.out.println("기타 메시지 수신: " + jsonNode.toString());
-                        break;
-                }
+                System.out.println("포즈 데이터는 시그널링에서 처리하지 않음.");
+                return;
+            }
+
+            // WebRTC 관련 메시지 처리
+            switch (type) {
+                case "offer":
+                    System.out.println("offer 수신");
+                    break;
+                case "answer":
+                    System.out.println("answer 수신");
+                    break;
+                case "candidate":
+                    System.out.println("ICE candidate 수신");
+                    break;
+                default:
+                    System.out.println("기타 메시지 수신: " + jsonNode.toString());
+                    break;
             }
         } catch (Exception e) {
             System.err.println("JSON 파싱 오류 발생: " + e.getMessage());
             e.printStackTrace();
         }
 
-        // 브로드캐스트: 같은 세션이 아니고, 세션이 열려 있다면 전송
+        // 같은 세션이 아니고, 열린 세션에게 브로드캐스트 (필요에 따라)
         for (WebSocketSession s : sessions.values()) {
             if (!s.getId().equals(session.getId()) && s.isOpen()) {
                 s.sendMessage(new TextMessage(payload));
