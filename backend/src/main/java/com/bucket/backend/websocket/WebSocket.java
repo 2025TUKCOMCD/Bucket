@@ -25,7 +25,7 @@ public class WebSocket {
             //WebSocketContainer: WebSocket 클라이언트의 서버연결, 세션관리
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
            // Websocket 연결 생성
-            aiSession = container.connectToServer(this, new URI("ws://ai-server:5000/ws/analyze"));
+            aiSession = container.connectToServer(this, new URI("ws://ai-server:5000/ws/connect"));
         } catch(Exception e){
             log.error("error",e);
         }
