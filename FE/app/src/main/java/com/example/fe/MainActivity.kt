@@ -343,33 +343,44 @@ class MainActivity : AppCompatActivity() {
      */
     private fun handlePoseResult(result: PoseLandmarkerResult) {
         val multiPoseLandmarks = result.landmarks()
+        Log.d("PoseLandmarker", "landmarks size: ${multiPoseLandmarks.size}")
         if (multiPoseLandmarks.isNotEmpty()) {
             val firstPose = multiPoseLandmarks[0]
-
-            // 예: 평균 visibility 체크
             val avgVisibility = firstPose.map { it.visibility().orElse(0f) }.average()
-            if (avgVisibility < 0.5) return
+            Log.d("PoseLandmarker", "avgVisibility: $avgVisibility")
+            if (avgVisibility < 0.3) return  // 조건에 미달하면 데이터 전송 안 함.
 
             runOnUiThread {
                 poseOverlayView.updateLandmarks(firstPose)
             }
-            val jsonData = convertLandmarksToJson(firstPose)
+            val jsonData = convertPoseDataToJson(firstPose)
+            Log.d("PoseLandmarker", "Sending pose data: $jsonData")  // 이 로그가 찍히는지 확인하세요.
             signalingClient?.sendMessage(jsonData)
         }
     }
 
-    private fun convertLandmarksToJson(landmarks: List<NormalizedLandmark>): String {
-        val landmarksJson = landmarks.map { lm ->
-            mapOf(
+
+    private fun convertPoseDataToJson(landmarks: List<NormalizedLandmark>): String {
+        // 예시: landmarks 데이터를 원하는 형식으로 변환
+        val pts = mutableMapOf<String, Map<String, Float>>()
+        // 포인트 이름은 예시로 "Point_0", "Point_1", ... 로 지정
+        landmarks.forEachIndexed { index, lm ->
+            pts["Point_$index"] = mapOf(
                 "x" to lm.x(),
-                "y" to lm.y(),
-                "z" to lm.z(),
-                "visibility" to (lm.visibility().orElse(0f))
+                "y" to lm.y()
             )
         }
+
+        // view1 객체 구성
+        val view1 = mapOf("pts" to pts)
+
+        // frames 배열 구성 (여러 프레임이 있다면 배열에 여러 항목을 추가)
+        val frames = listOf(mapOf("view1" to view1))
+
+        // 최종 JSON 구성 (여기서 필요한 다른 필드들도 추가 가능)
         val jsonMap = mapOf(
-            "timestamp" to System.currentTimeMillis(),
-            "landmarks" to landmarksJson
+            "type" to "pose",  // 데이터를 구분하기 위한 필드
+            "frames" to frames
         )
         return JSONObject(jsonMap).toString()
     }

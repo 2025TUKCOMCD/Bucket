@@ -8,7 +8,7 @@ class SignalingClient(val listener: (String) -> Unit) {
     private val client = OkHttpClient()
     private val request = Request.Builder()
         // 에뮬레이터에서 테스트할 경우 호스트 PC의 localhost는 10.0.2.2 사용
-        .url("ws://192.168.35.154:3000")
+        .url("ws://192.168.35.153:8080")
         .build()
     private val webSocket: WebSocket
 
