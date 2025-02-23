@@ -1,10 +1,7 @@
 package com.bucket.backend.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.websocket.ClientEndpoint;
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.Session;
-import jakarta.websocket.WebSocketContainer;
+import jakarta.websocket.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +22,8 @@ public class WebSocket {
             //WebSocketContainer: WebSocket 클라이언트의 서버연결, 세션관리
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
            // Websocket 연결 생성
-            aiSession = container.connectToServer(this, new URI("ws://ai-server:5000/ws/connect"));
+            aiSession = container.connectToServer(this, new URI("ws://localhost:5000/ws/connect"));
+            log.info("연결 성공: ws://ai-server:5000/ws/connect");
         } catch(Exception e){
             log.error("error",e);
         }
@@ -34,6 +32,21 @@ public class WebSocket {
     //Ai모델에 데이터를 전송하는 메소드 (질문 답변 받으면 추가할 예쩡)
     public void sendToAI(String jsons) throws IOException{
         //메시지 전송
-        aiSession.getBasicRemote().sendText(jsons);
+        // 테스트 JSON 데이터
+        String testJson = "{"
+                + "\"user_id\": 1,"
+                + "\"exercise\": \"push-up\","
+                + "\"keypoints\": {"
+                + "    \"Point_0\": {\"x\": 0.1, \"y\": 0.2},"
+                + "    \"Point_1\": {\"x\": 0.3, \"y\": 0.4}"
+                + "}"
+                + "}";
+
+        aiSession.getBasicRemote().sendText(testJson);
+    }
+
+    @OnMessage
+    public void onMessage(String message){
+        System.out.println("응답 수신: "+ message);
     }
 }
