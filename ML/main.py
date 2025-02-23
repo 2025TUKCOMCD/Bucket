@@ -5,11 +5,11 @@
 
 import os
 import json
-import asyncio
-import base64
-import cv2
-import numpy as np
-import mediapipe as mp
+# import asyncio
+# import base64
+# import cv2
+# import numpy as np
+# import mediapipe as mp
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -24,7 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-JSON_DIR = "C:\\Users\\Yang Dong Gyun\\Desktop\\jsontest"
+#Json파일을 저장할 경로
+#JSON_DIR = "C:\\Users\\Yang Dong Gyun\\Desktop\\jsontest"
+JSON_DIR = "C:\\Users\\DongGyunYang\\Desktop\\jsontest"
 os.makedirs(JSON_DIR, exist_ok=True)
 
 

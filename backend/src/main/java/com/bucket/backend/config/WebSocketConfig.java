@@ -13,14 +13,18 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    //의존성 주입
+    public WebSocketConfig(AIWebSocketHandler aiWebSocketHandler) {
+    }
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
 
-        registry.addHandler(new AIWebSocketHandler(), "/ws/analyze").setAllowedOrigins("*");
+
+
+        registry.addHandler(new AIWebSocketHandler(), "/ws/connect").setAllowedOrigins("*");
         // 영상 데이터용 엔드포인트
         registry.addHandler(new SignalingWebSocketHandler(), "/signaling").setAllowedOrigins("*");
-
-
         // 포즈 데이터 전용 엔드포인트
         registry.addHandler(new PoseWebSocketHandler(), "/pose").setAllowedOrigins("*");
 

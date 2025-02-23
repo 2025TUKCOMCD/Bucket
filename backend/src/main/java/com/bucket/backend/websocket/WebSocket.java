@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 
 // AI모델과 Websocket 서버와 연결하여 데이터를 주고받는 Websocket 클라이언트
@@ -16,6 +18,16 @@ public class WebSocket {
     private static Session aiSession;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+
+    //사용할 관절 리스트 (필터링 기능)
+    private static final List<String> selectedPoints = Arrays.asList(
+            "Point_0", "Point_2", "Point_5", "Point_7", "Point_8",
+            "Point_11", "Point_12", "Point_13", "Point_14", "Point_15",
+            "Point_16", "Point_17", "Point_18", "Point_21", "Point_23",
+            "Point_25", "Point_26", "Point_28", "Point_30", "Point_31", "Point_32"
+    );
+
+
     //AI모델과 Websocket의 연결 설정
     public WebSocket(){
         try {
@@ -23,7 +35,7 @@ public class WebSocket {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
            // Websocket 연결 생성
             aiSession = container.connectToServer(this, new URI("ws://localhost:5000/ws/connect"));
-            log.info("연결 성공: ws://ai-server:5000/ws/connect");
+            log.info("연결 성공: ws://localhost:5000/ws/connect");
         } catch(Exception e){
             log.error("error",e);
         }
@@ -44,6 +56,8 @@ public class WebSocket {
 
         aiSession.getBasicRemote().sendText(testJson);
     }
+
+    //public void convertJson
 
     @OnMessage
     public void onMessage(String message){
