@@ -1,27 +1,30 @@
 package com.bucket.backend.controller;
 
+import com.bucket.backend.websocket.AIClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.websocket.Session;
+import jakarta.websocket.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.net.URI;
 import java.util.*;
 
 import java.io.IOException;
 import java.util.Map;
 
-
-//AI 모델과 WebSocket으로 실시간으로 통신하는 핸들러
-
+// AI 모델과 WebSocket으로 실시간으로 통신하는 핸들러
 @Service
 @Slf4j
 public class AIWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private Session aiSession;
+    public static WebSocketSession session; // Spring WebSocket 세션 관리
+    private final AIClient aiClient;  //AI서버와 연결된 session
 
-    //사용할 관절 (필터링)
+    // 사용할 관절 (필터링)
     private final List<String> Points = Arrays.asList(
             "Point_0", "Point_2", "Point_5", "Point_7", "Point_8",
             "Point_11", "Point_12", "Point_13", "Point_14", "Point_15",
@@ -29,43 +32,98 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
             "Point_25", "Point_26", "Point_28", "Point_30", "Point_31", "Point_32"
     );
 
-    public AIWebSocketHandler() {}
+    @Autowired
+    public AIWebSocketHandler(AIClient aiClient) {
+        this.aiClient = aiClient;
+        log.info("핸들러 인스턴스 생성");
+    }
 
-    //질문 답변받으면 추가할 예정
-    // session: websocket 세션
-    // message: json 메시지
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException{
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        AIWebSocketHandler.session = session;
+        log.info("클라이언트 연결됨: {}", session.getId());
+    }
 
-        try{
-            // Json 데이터를 Map 변환
+    // WebSocket으로 받은 메시지 처리
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+        try {
+            // JSON 데이터를 Map으로 변환
             Map<String, Object> rawData = objectMapper.readValue(message.getPayload(), Map.class);
-            log.info("Mediapipe 데이터 수신 : {}", rawData.toString());
+            log.info("Mediapipe 데이터 수신: {}", rawData);
 
-            // AI Input형태로 Json 변환
+            // AI Input형태로 변환
             Map<String, Object> transformedData = convertJson(rawData);
 
             // 변환된 데이터 AI로 전송
             sendToAI(transformedData);
-            
+
         } catch (IOException e) {
             log.error("WebSocket 메시지 처리 중 오류 발생", e);
         }
     }
 
-    private Map<String,Object> convertJson(Map<String,Object> rawData){
+    // JSON 변환 로직
+    private Map<String, Object> convertJson(Map<String, Object> rawData) {
         Map<String, Object> aiInput = new HashMap<>();
+        List<Map<String, Object>> filteredFrames = new ArrayList<>();
+
+        List<Map<String, Object>> frames = (List<Map<String, Object>>) rawData.get("frames");
+
+        for (Map<String, Object> frame : frames) {
+            Map<String, Object> newFrame = new HashMap<>();
+            Map<String, Object> viewData = (Map<String, Object>) frame.get("view1");
+
+            if (viewData != null) {
+                Map<String, Object> pts = (Map<String, Object>) viewData.get("pts");
+
+                if (pts != null) {
+                    Map<String, Object> filteredPts = new HashMap<>();
+
+                    // 필터링할 포인트만 선택
+                    for (String key : Points) {
+                        if (pts.containsKey(key)) {
+                            filteredPts.put(key, pts.get(key));
+                        }
+                    }
+
+                    Map<String, Object> newViewData = new HashMap<>();
+                    newViewData.put("pts", filteredPts);
+
+                    newFrame.put("view1", newViewData);
+                    filteredFrames.add(newFrame);
+                }
+            }
+        }
+
+        aiInput.put("frames", filteredFrames);
 
         return aiInput;
     }
 
-    private void sendToAI(Map<String, Object> transformedData){
-        try{
+    private void sendToAI(Map<String, Object> transformedData) {
+        try {
             String json = objectMapper.writeValueAsString(transformedData);
-
-            log.info("AI 모델로 데이터 전송 완료: {}", json);
-        }catch (IOException e){
-            e.printStackTrace();
+            aiClient.sendToAI(json);
+            //log.info("AI 모델로 데이터 전송 완료: {}", json);
+            }
+        catch (IOException e) {
+            log.error("AI로 데이터 전송 중 오류 발생", e);
         }
     }
+
+//    @OnMessage
+//    public void onMessage(String message){
+//        log.info("AI 응답 수신: {}",message);
+//        try{
+//            if(session!= null && session.isOpen()){
+//                session.sendMessage(new TextMessage(message));
+//                log.info("클라이언트로 전달 완료");
+//            }
+//        } catch (IOException e) {
+//            log.error("전달 중 오류 발생",e);
+//        }
+//    }
 }
+
+
