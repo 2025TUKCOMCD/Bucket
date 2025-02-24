@@ -14,7 +14,7 @@ keypoints = ["nose", "left_eye", "right_eye", "left_ear", "right_ear",
 app = FastAPI()
 
 # ST-GCN 모델 로드 (미리 저장된 모델 파일 경로)
-model = tf.keras.models.load_model("stgcn_model1")
+model = tf.keras.models.load_model("stgcn_model1.keras")
 
 def load_json_skeleton(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
