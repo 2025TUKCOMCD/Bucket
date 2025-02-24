@@ -9,6 +9,7 @@ import org.springframework.web.socket.TextMessage;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.bucket.backend.controller.AIWebSocketHandler.session;
 
@@ -19,7 +20,6 @@ public class AIClient{
     private static Session aiSession;
     //ai서버 URL
     private final String AI_URL = "ws://localhost:5000/ws/connect";
-
     public AIClient(){
         //AI서버와 연결 설정
         try{
