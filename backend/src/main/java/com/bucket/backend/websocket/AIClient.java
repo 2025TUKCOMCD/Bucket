@@ -3,7 +3,8 @@ package com.bucket.backend.websocket;
 
 import jakarta.websocket.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+
 import org.springframework.web.socket.TextMessage;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import static com.bucket.backend.controller.AIWebSocketHandler.session;
 
 @Slf4j
 @ClientEndpoint
-@Service
+@Component
 public class AIClient{
     private static Session aiSession;
     //ai서버 URL

@@ -112,18 +112,6 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-//    @OnMessage
-//    public void onMessage(String message){
-//        log.info("AI 응답 수신: {}",message);
-//        try{
-//            if(session!= null && session.isOpen()){
-//                session.sendMessage(new TextMessage(message));
-//                log.info("클라이언트로 전달 완료");
-//            }
-//        } catch (IOException e) {
-//            log.error("전달 중 오류 발생",e);
-//        }
-//    }
 }
 
 
