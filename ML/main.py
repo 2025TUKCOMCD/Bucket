@@ -28,7 +28,7 @@ app.add_middleware(
 #JSON_DIR = "C:\\Users\\Yang Dong Gyun\\Desktop\\jsontest"
 #JSON_DIR = "C:\\Users\\DongGyunYang\\Desktop\\jsontest"
 #서버 경로
-Json_DIR = "/home/ubuntu/bucket"
+JSON_DIR = "/home/ubuntu/bucket"
 os.makedirs(JSON_DIR, exist_ok=True)
 
 
