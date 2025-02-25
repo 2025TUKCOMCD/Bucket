@@ -28,11 +28,11 @@
 
 <script>
     // 시그널링 서버 URL
-    const signalingUrl = 'ws://192.168.35.153:8080/signaling';
+    const signalingUrl = 'ws://15.165.138.10:8080/signaling';
     const signalingConnection = new WebSocket(signalingUrl);
 
     // 포즈 데이터 전용 URL
-    const poseUrl = 'ws://192.168.35.153:8080/pose';
+    const poseUrl = 'ws://15.165.138.10:8080/pose';
     const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
