@@ -8,3 +8,4 @@ Thumbs.db
 *.iml
 
 __pycache__/
+*.keras
