@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- WebRTC 스트리밍 미리보기 -->
+    <org.webrtc.SurfaceViewRenderer
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- (선택) CameraX PreviewView는 사용 안 하므로 삭제하거나 숨김
+         <androidx.camera.view.PreviewView
+             android:id="@+id/previewView"
+             android:layout_width="200dp"
+             android:layout_height="200dp"
+             android:visibility="gone" />
+     -->
+
+    <!-- 포즈 오버레이 (랜드마크 점 찍기) -->
+    <com.example.fe.PoseOverlayView
+        android:id="@+id/poseOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

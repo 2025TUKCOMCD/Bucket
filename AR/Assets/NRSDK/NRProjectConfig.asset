@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a1762186822e43a7a4a471f83f53761, type: 3}
   m_Name: NRProjectConfig
   m_EditorClassIdentifier: 
-  targetDevices: 0100000002000000
+  targetDevices: 0200000001000000
   supportMultiResume: 1

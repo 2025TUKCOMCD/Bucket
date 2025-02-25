@@ -6,3 +6,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+
+__pycache__/
+*.keras
