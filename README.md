@@ -127,6 +127,9 @@
 ## 팀 notion 링크
 <a href="https://open-crab-7f9.notion.site/HomePT-17db7afc87b8806ab9caf5ea3b7262ef">notion</a>
 
+## 발표자료
+<a href="https://www.canva.com/design/DAGgFxMQlbI/ZW8RaLD5sAJBrhYvK7ZU4g/edit">2차 세션 발표자료</a>
+
 ## 🚨 정기회의 🚨
 - 목요일 21시
 
