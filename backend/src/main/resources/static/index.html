@@ -40,9 +40,9 @@
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             {
-                urls: 'turn:YOUR_EC2_PUBLIC_IP:3478',
-                username: 'unused',
-                credential: 'YOUR_STATIC_SECRET'
+                urls: 'turn:15.165.138.10:3478',
+                username: 'unused',              // static-auth-secret 사용 시 특별한 의미 없음
+                credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
             }
         ]
     };
