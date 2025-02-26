@@ -73,13 +73,36 @@
         } else if (data.type === 'answer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
         } else if (data.type === 'candidate') {
-            if (!data.sdpMid || data.sdpMLineIndex === null) {
+            // candidate 값이 객체인지 확인합니다.
+            let candidateObj;
+            if (typeof data.candidate === 'object' && data.candidate !== null) {
+                candidateObj = data.candidate;
+            } else {
+                // candidate가 문자열로 전달되는 경우
+                candidateObj = {
+                    candidate: data.candidate,
+                    sdpMid: data.sdpMid,
+                    sdpMLineIndex: data.sdpMLineIndex
+                };
+            }
+            // sdpMLineIndex가 문자열이면 숫자로 변환
+            const candidateInit = {
+                candidate: candidateObj.candidate,
+                sdpMid: candidateObj.sdpMid,
+                sdpMLineIndex: typeof candidateObj.sdpMLineIndex === 'string'
+                    ? Number(candidateObj.sdpMLineIndex)
+                    : candidateObj.sdpMLineIndex
+            };
+
+            if (!candidateInit.sdpMid && (candidateInit.sdpMLineIndex === null || candidateInit.sdpMLineIndex === undefined)) {
                 console.warn('[⚠️ 잘못된 ICE Candidate 수신]:', data);
                 return;
             }
-            peerConnection.addIceCandidate(new RTCIceCandidate(data));
+
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
         }
     };
+
 
     // ✅ 포즈 데이터 서버 연결 이벤트
     poseConnection.onopen = () => {
