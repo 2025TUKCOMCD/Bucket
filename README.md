@@ -1,4 +1,4 @@
-# Bucket
+# 팀 Bucket
 
 # 앱이름: HOMEPT
 
