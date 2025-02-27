@@ -28,6 +28,8 @@ app = FastAPI()
 # ST-GCN 모델 로드 (미리 저장된 모델 파일 경로)
 model = tf.keras.models.load_model("stgcn_model1.keras")
 
+
+
 def load_json_skeleton(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -35,12 +37,12 @@ def load_json_skeleton(file_path):
     num_frames = len(data["frames"])
     num_joints = len(keypoints)
     num_features = 2  # (x, y)
-    num_views = 5     # view1 ~ view5
+    num_views = 1
 
     # (1, 프레임, 뷰, 관절, 좌표) 형태의 데이터 배열 생성
     X_data = np.zeros((1, num_frames, num_views, num_joints, num_features), dtype=np.float32)
 
-    views = ["view1", "view2", "view3", "view4", "view5"]
+    views = ["view1"]
 
     # JSON 데이터를 배열로 변환
     for frame_idx, frame in enumerate(data["frames"]):
