@@ -1,6 +1,6 @@
 # Bucket
 
-# 앱이름: HOMEPT
+# 앱이름: HomePT
 
 ## 📖 프로젝트 개요
 스마트글래스를 활용하여 사용자의 운동 자세를 실시간으로 분석하고 피드백을 제공하는 AR 피트니스 보조 서비스입니다.
@@ -126,6 +126,9 @@
 
 ## 팀 notion 링크
 <a href="https://open-crab-7f9.notion.site/HomePT-17db7afc87b8806ab9caf5ea3b7262ef">notion</a>
+
+## 발표자료
+<a href="https://www.canva.com/design/DAGgFxMQlbI/ZW8RaLD5sAJBrhYvK7ZU4g/edit">2차 세션 발표자료</a>
 
 ## 🚨 정기회의 🚨
 - 목요일 21시

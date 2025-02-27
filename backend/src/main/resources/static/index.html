@@ -27,17 +27,24 @@
 </div>
 
 <script>
-    // 시그널링 서버 URL
-    const signalingUrl = 'ws://192.168.35.153:8080/signaling';
+    // ✅ 시그널링 서버 URL
+    const signalingUrl = 'ws://15.165.138.10:8080/signaling';
     const signalingConnection = new WebSocket(signalingUrl);
 
-    // 포즈 데이터 전용 URL
-    const poseUrl = 'ws://192.168.35.153:8080/pose';
+    // ✅ 포즈 데이터 전용 WebSocket
+    const poseUrl = 'ws://15.165.138.10:8080/pose';
     const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
     const config = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            {
+                urls: 'turn:15.165.138.10:3478',
+                username: 'unused',              // static-auth-secret 사용 시 특별한 의미 없음
+                credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
+            }
+        ]
     };
 
     // video 요소 선택
@@ -45,17 +52,16 @@
     const video2 = document.getElementById('video2');
     const resultDiv = document.getElementById('result');
 
-    // 시그널링 연결 이벤트
+    // ✅ 시그널링 서버 연결 이벤트
     signalingConnection.onopen = () => {
-        console.log('시그널링 서버에 연결됨');
+        console.log('[✅ 시그널링] 서버에 연결됨');
         createPeerConnection();
-        // 필요시 Offer 생성 호출 (아래 getUserMedia 부분을 활성화할 경우)
-        // createOffer();
     };
 
+    // ✅ 시그널링 서버에서 메시지 수신
     signalingConnection.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        console.log('수신한 시그널링 메시지:', data);
+        console.log('[📩 시그널링 메시지 수신]:', data);
 
         if (data.type === 'offer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
@@ -67,24 +73,47 @@
         } else if (data.type === 'answer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
         } else if (data.type === 'candidate') {
+            // candidate 값이 객체인지 확인합니다.
+            let candidateObj;
+            if (typeof data.candidate === 'object' && data.candidate !== null) {
+                candidateObj = data.candidate;
+            } else {
+                // candidate가 문자열로 전달되는 경우
+                candidateObj = {
+                    candidate: data.candidate,
+                    sdpMid: data.sdpMid,
+                    sdpMLineIndex: data.sdpMLineIndex
+                };
+            }
+            // sdpMLineIndex가 문자열이면 숫자로 변환
             const candidateInit = {
-                candidate: data.candidate,
-                sdpMid: data.sdpMid,
-                sdpMLineIndex: typeof data.sdpMLineIndex === 'string' ? Number(data.sdpMLineIndex) : data.sdpMLineIndex
+                candidate: candidateObj.candidate,
+                sdpMid: candidateObj.sdpMid,
+                sdpMLineIndex: typeof candidateObj.sdpMLineIndex === 'string'
+                    ? Number(candidateObj.sdpMLineIndex)
+                    : candidateObj.sdpMLineIndex
             };
+
+            if (!candidateInit.sdpMid && (candidateInit.sdpMLineIndex === null || candidateInit.sdpMLineIndex === undefined)) {
+                console.warn('[⚠️ 잘못된 ICE Candidate 수신]:', data);
+                return;
+            }
+
             peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
         }
     };
 
-    // 포즈 데이터 연결 이벤트
+
+    // ✅ 포즈 데이터 서버 연결 이벤트
     poseConnection.onopen = () => {
-        console.log('포즈 데이터 서버에 연결됨');
+        console.log('[✅ 포즈 데이터] 서버에 연결됨');
     };
 
+    // ✅ 포즈 데이터 메시지 수신
     poseConnection.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        console.log('수신한 포즈 데이터:', data);
-        // 여기에 포즈 데이터를 활용하여 화면 오버레이 업데이트 등 필요한 처리를 추가하세요.
+        console.log('[📩 포즈 데이터 수신]:', data);
+        // 포즈 데이터를 활용하여 화면 업데이트 가능
     };
 
     function createPeerConnection() {
@@ -92,6 +121,7 @@
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
+                console.log('[📤 ICE Candidate 전송]:', event.candidate);
                 signalingConnection.send(JSON.stringify({
                     type: 'candidate',
                     candidate: event.candidate
@@ -99,22 +129,20 @@
             }
         };
 
-        // 원격 스트림 수신 시 video1에 할당
+        // ✅ 원격 스트림 수신 시 video1에 할당
         peerConnection.ontrack = event => {
+            console.log('[🎥 원격 비디오 수신]');
             video1.srcObject = event.streams[0];
         };
 
-        // 로컬 미디어 스트림 추가 (카메라 캡처 등)
-        // 필요시 주석을 해제하세요.
+        // ✅ 로컬 미디어 스트림 추가 (필요하면 활성화)
         /*
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(stream => {
                 stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
                 video2.srcObject = stream;
-                // Offer 생성: 필요 시 호출
-                // createOffer();
             })
-            .catch(error => console.error('getUserMedia 에러:', error));
+            .catch(error => console.error('[❌ getUserMedia 에러]:', error));
         */
     }
 
@@ -129,40 +157,3 @@
 
 </body>
 </html>
-<script>
-    (function() {
-        var ws = new WebSocket('ws://' + window.location.host +
-            '/jb-server-page?reloadMode=RELOAD_ON_SAVE&'+
-            'referrer=' + encodeURIComponent(window.location.pathname));
-        ws.onmessage = function (msg) {
-            if (msg.data === 'reload') {
-                window.location.reload();
-            }
-            if (msg.data.startsWith('update-css ')) {
-                var messageId = msg.data.substring(11);
-                var links = document.getElementsByTagName('link');
-                for (var i = 0; i < links.length; i++) {
-                    var link = links[i];
-                    if (link.rel !== 'stylesheet') continue;
-                    var clonedLink = link.cloneNode(true);
-                    var newHref = link.href.replace(/(&|\?)jbUpdateLinksId=\d+/, "$1jbUpdateLinksId=" + messageId);
-                    if (newHref !== link.href) {
-                        clonedLink.href = newHref;
-                    }
-                    else {
-                        var indexOfQuest = newHref.indexOf('?');
-                        if (indexOfQuest >= 0) {
-                            // to support ?foo#hash
-                            clonedLink.href = newHref.substring(0, indexOfQuest + 1) + 'jbUpdateLinksId=' + messageId + '&' +
-                                newHref.substring(indexOfQuest + 1);
-                        }
-                        else {
-                            clonedLink.href += '?' + 'jbUpdateLinksId=' + messageId;
-                        }
-                    }
-                    link.replaceWith(clonedLink);
-                }
-            }
-        };
-    })();
-</script>
