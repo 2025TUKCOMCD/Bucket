@@ -48,21 +48,23 @@ async def receive_json(websocket: WebSocket):
                 json_data = json.loads(data)
 
                 # json 파일 저장
-                json_file_path = f"{JSON_DIR}\\user.json"
+                json_file_path = os.path.join(JSON_DIR,".json")
                 with open(json_file_path, "w", encoding="utf-8") as json_file:
                     json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
                 print(f"Json 데이터 저장 완료: {json_file_path}")
 
+                result = predict_json_skeleton(json_file_path)
                 
                 response = {
                     #"user_id": user_id,
                     "status": "success",
-                    "message": "JSON 저장 완료"
+                    "message": "AI 모델 완료",
+                    "prediction_result" : result
                 }
                 await websocket.send_text(json.dumps(response))
-
                 print(f"spring로 응답 전송:{response}")
+
             except Exception as e:
                 print(f"Websocket Error: {e}")
                 break
@@ -70,3 +72,42 @@ async def receive_json(websocket: WebSocket):
         print(f"Websocket Error: {e}")
     finally:
         print("Websocket 종료 처리 완료.")
+
+def load_json_skeleton(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    num_frames = len(data["frames"])
+    num_joints = len(keypoints)
+    num_features = 2  # (x, y)
+    num_views = 5     # view1 ~ view5
+
+    # (1, 프레임, 뷰, 관절, 좌표) 형태의 데이터 배열 생성
+    X_data = np.zeros((1, num_frames, num_views, num_joints, num_features), dtype=np.float32)
+
+    views = ["view1", "view2", "view3", "view4", "view5"]
+
+    # JSON 데이터를 배열로 변환
+    for frame_idx, frame in enumerate(data["frames"]):
+        for view_idx, view in enumerate(views):
+            pts = frame.get(view, {}).get("pts", {})
+            for joint_idx, joint_name in enumerate(keypoints):
+                if joint_name in pts:
+                    X_data[0, frame_idx, view_idx, joint_idx, 0] = pts[joint_name]["x"]
+                    X_data[0, frame_idx, view_idx, joint_idx, 1] = pts[joint_name]["y"]
+
+    return X_data, data.get("type_info", None)
+
+def predict_json_skeleton(file_path):
+    # JSON 파일을 로드하고 전처리
+    X_data, _ = load_json_skeleton(file_path)
+    # 모델 예측
+    prediction = model.predict(X_data)
+    predicted_class = int(np.argmax(prediction, axis=-1)[0])
+    confidence = float(prediction[0][predicted_class])
+    
+    if predicted_class == 0:
+        result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
+    else:
+        result = f"❌ 잘못된 자세 감지 ({confidence * 100:.2f}% 확신)"
+    return result
