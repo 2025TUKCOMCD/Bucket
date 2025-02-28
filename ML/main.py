@@ -1,15 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[9]:
-
 import os
 import json
-# import asyncio
-# import base64
-# import cv2
-# import numpy as np
-# import mediapipe as mp
+import numpy as np
+import mediapipe as mp
+import tensorflow as tf
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -25,13 +18,22 @@ app.add_middleware(
 )
 
 #Json파일을 저장할 경로
-#JSON_DIR = "C:\\Users\\Yang Dong Gyun\\Desktop\\jsontest"
+#로컬 경로
 #JSON_DIR = "C:\\Users\\DongGyunYang\\Desktop\\jsontest"
 #서버 경로
 JSON_DIR = "/home/ubuntu/bucket"
 os.makedirs(JSON_DIR, exist_ok=True)
 
+# ST-GCN 모델 로드 (미리 저장된 모델 파일 경로)
+model = tf.keras.models.load_model("stgcn_model1.keras")
 
+# 예제용 keypoints 리스트 (실제 사용하는 관절 이름 리스트로 교체하세요)
+keypoints = ["nose", "left_eye", "right_eye", "left_ear", "right_ear",
+             "left_shoulder", "right_shoulder", "left_elbow", "right_elbow",
+             "left_wrist", "right_wrist", "left_hip", "right_hip",
+             "left_knee", "right_knee", "left_ankle", "right_ankle"]
+
+# WebSocket 엔드포인트: Json 데이터 수신 및 AI 분석
 @app.websocket("/ws/connect")
 async def receive_json(websocket: WebSocket):
     # AI 모델이 WebSocket을 통해 백엔드의 JSON 데이터를 받고 저장하는 WebSocket 서버
@@ -52,23 +54,14 @@ async def receive_json(websocket: WebSocket):
 
                 print(f"Json 데이터 저장 완료: {json_file_path}")
 
-                # 응답을 한 번만 전송하도록 수정
-                if "response_sent" not in json_data:
-                    response = {
-                        #"user_id": user_id,
-                        "status": "success",
-                        "message": "JSON 저장 완료"
-                    }
+                
+                response = {
+                    #"user_id": user_id,
+                    "status": "success",
+                    "message": "JSON 저장 완료"
+                }
                 await websocket.send_text(json.dumps(response))
-                json_data["response_sent"] = True  # 응답이 이미 전송되었음을 기록
-                # # AI 모델의 응답 데이터 생성
-                # response = {
-                #     #"user_id": json_data["user_id"],
-                #     "status": "success",
-                #     "message": "JSON 저장 완료"
-                # }
 
-                await websocket.send_text(json.dumps(response))
                 print(f"spring로 응답 전송:{response}")
             except Exception as e:
                 print(f"Websocket Error: {e}")
