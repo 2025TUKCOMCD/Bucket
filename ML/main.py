@@ -9,6 +9,7 @@ import scipy.signal
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from collections import deque
+import logging
 
 keypoints = [
     "Point_0", "Point_7", "Point_8", "Point_11", "Point_12", "Point_13",
@@ -19,6 +20,23 @@ keypoints = [
 
 # FastAPI 앱 생성
 app = FastAPI()
+
+# 로그 설정 (파일 + 콘솔 출력)
+logging.basicConfig(
+    filename="/home/ubuntu/bucket/fastapi.log", 
+    filemode="w", 
+    format="%(asctime)s - %(levelname)s - %(message)s",  # 로그 형식
+    level=logging.DEBUG)
+
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.DEBUG)
+
+# 콘솔 로그 핸들러 추가 (콘솔 + 파일 로그 저장)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 def load_json_skeleton(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
@@ -276,7 +294,8 @@ async def receive_json(websocket: WebSocket):
     # AI 모델이 WebSocket을 통해 백엔드의 JSON 데이터를 받고 저장하는 WebSocket 서버
     await websocket.accept()
 
-    print("FastAPI WebSocket 연결 성공!")
+    #print("FastAPI WebSocket 연결 성공!")
+    logger.info("FastAPI WebSocket 연결 성공!")
     try:    
         while True:
             try:
@@ -285,11 +304,12 @@ async def receive_json(websocket: WebSocket):
                 json_data = json.loads(data)
 
                 # json 파일 저장
-                json_file_path = f"{JSON_DIR}\\user.json"
+                json_file_path = f"{JSON_DIR}/user.json"
                 with open(json_file_path, "w", encoding="utf-8") as json_file:
                     json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
-                print(f"Json 데이터 저장 완료: {json_file_path}")
+                #print(f"Json 데이터 저장 완료: {json_file_path}")
+                logger.info(f"Json 데이터 저장 완료: {json_file_path}")
 
                 # 1프레임 데이터를 슬라이딩 윈도우에 추가
                 new_frame = process_json_data(json_data)
@@ -306,7 +326,9 @@ async def receive_json(websocket: WebSocket):
                         "prediction_result": feedback
                     }
                     await websocket.send_text(json.dumps(response, ensure_ascii=False))
-                    print(f"spring로 응답 전송:{response}")
+                    
+                    #print(f"spring로 응답 전송:{response}")
+                    logger.info(f"spring로 응답 전송:{response}")
 
                     for _ in range(step_size):
                         if frame_buffer:
