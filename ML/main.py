@@ -6,8 +6,59 @@ import tensorflow as tf
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
+keypoints = [
+    "Point_0", "Point_2", "Point_5", "Point_7", "Point_8", "Point_11", 
+    "Point_12", "Point_13", "Point_14", "Point_15", "Point_16", "Point_17", 
+    "Point_18", "Point_21", "Point_23", "Point_25", "Point_26", "Point_28", 
+    "Point_30", "Point_31", "Point_32"
+]
+
 # FastAPI 앱 생성
 app = FastAPI()
+
+# ST-GCN 모델 로드 (미리 저장된 모델 파일 경로)
+model = tf.keras.models.load_model("stgcn_model1.keras")
+
+
+
+def load_json_skeleton(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    num_frames = len(data["frames"])
+    num_joints = len(keypoints)
+    num_features = 2  # (x, y)
+    num_views = 1
+
+    # (1, 프레임, 뷰, 관절, 좌표) 형태의 데이터 배열 생성
+    X_data = np.zeros((1, num_frames, num_views, num_joints, num_features), dtype=np.float32)
+
+    views = ["view1"]
+
+    # JSON 데이터를 배열로 변환
+    for frame_idx, frame in enumerate(data["frames"]):
+        for view_idx, view in enumerate(views):
+            pts = frame.get(view, {}).get("pts", {})
+            for joint_idx, joint_name in enumerate(keypoints):
+                if joint_name in pts:
+                    X_data[0, frame_idx, view_idx, joint_idx, 0] = pts[joint_name]["x"]
+                    X_data[0, frame_idx, view_idx, joint_idx, 1] = pts[joint_name]["y"]
+
+    return X_data, data.get("type_info", None)
+
+def predict_json_skeleton(file_path):
+    # JSON 파일을 로드하고 전처리
+    X_data, _ = load_json_skeleton(file_path)
+    # 모델 예측
+    prediction = model.predict(X_data)
+    predicted_class = int(np.argmax(prediction, axis=-1)[0])
+    confidence = float(prediction[0][predicted_class])
+    
+    if predicted_class == 0:
+        result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
+    else:
+        result = f"❌ 잘못된 자세 감지 ({confidence * 100:.2f}% 확신)"
+    return result
 
 # CORS 설정 (모든 출처 허용)
 app.add_middleware(
