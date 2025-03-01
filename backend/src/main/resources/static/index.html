@@ -4,27 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Screen</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8338ec;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .video-box {
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+
+        .video-box:nth-child(2) .video-header {
+            background-color: var(--secondary-color);
+        }
+
+        .video-content {
+            padding: 15px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+        }
+
+        .text-output {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-output h2 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            text-align: left;
+        }
+
+        .text-output-content {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            min-height: 120px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                flex-direction: column;
+            }
+            
+            .video-box {
+                min-width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
-<body class="bg-white flex flex-col items-center justify-center min-h-screen p-4">
-<div class="w-full h-full bg-gray-100 p-6 rounded-lg shadow-md flex flex-col">
-    <!-- 비디오 컨테이너 -->
-    <div class="flex-1 flex flex-row gap-4">
-        <!-- 스트리밍 영상 표시를 위한 video 태그 -->
-        <video id="video1" class="flex-1 rounded-lg aspect-video" autoplay playsinline controls></video>
-        <video id="video2" class="flex-1 rounded-lg aspect-video" autoplay playsinline controls></video>
+<body>
+    <div class="container">
+        <header>
+            <h1>운동 영상</h1>
+            <p>본인 운동영상와 참고영상을 비교해보세요!</p>
+        </header>
+
+        <div class="video-container">
+            <div class="video-box">
+                <div class="video-header">
+                    <span>My Video</span>
+                </div>
+                <div class="video-content">
+                    <video id="video1" autoplay playsinline controls></video>
+                </div>
+            </div>
+
+            <div class="video-box">
+                <div class="video-header">
+                    <span>Reference Video</span>
+                </div>
+                <div class="video-content">
+                    <video id="video2" autoplay playsinline controls></video>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-output">
+            <h2>Real-time Feedback</h2>
+            <div class="text-output-content" id="result">
+                <!-- 스트리밍 관련 상태나 결과 메시지 출력 -->
+                피드백 내용~~~~
+            </div>
+        </div>
     </div>
-    <!-- 결과 컨테이너 -->
-    <div class="w-full h-1/6 bg-white flex items-center justify-center text-lg font-semibold rounded-lg mt-4" id="result">
-        <!-- 스트리밍 관련 상태나 결과 메시지 출력 -->
-        Text Result
-    </div>
-</div>
 
 <script>
     // ✅ 시그널링 서버 URL
