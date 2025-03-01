@@ -244,15 +244,15 @@
 
     // ✅ 포즈 데이터 메시지 수신
     poseConnection.onmessage = (message) => {
-        const data = JSON.parse(message.data);
-        console.log('[📩 포즈 데이터 수신]:', data);
+        // const data = JSON.parse(message.data);
+        // console.log('[📩 포즈 데이터 수신]:', data);
         // 포즈 데이터를 활용하여 화면 업데이트 가능
 
-        // const data = message.data;
-        // console.log('AI 응답 수신: ',data);
-        //
-        // const resultDiv = document.getElementById('result');
-        // resultDiv.innerText = data;
+        const data = message.data;
+        console.log('AI 응답 수신: ',data);
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerText = data;
 
     };
 

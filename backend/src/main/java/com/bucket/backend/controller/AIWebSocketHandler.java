@@ -81,7 +81,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
         for (Map<String, Object> frame : frames) {
             Map<String, Object> newFrame = new HashMap<>();
-            Map<String, Object> viewData = (Map<String, Object>) frame.get("view1");
+            Map<String, Object> viewData = (Map<String, Object>) frame.get("view3");
 
             if (viewData != null) {
                 Map<String, Object> pts = (Map<String, Object>) viewData.get("pts");
@@ -99,7 +99,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
                     Map<String, Object> newViewData = new HashMap<>();
                     newViewData.put("pts", filteredPts);
 
-                    newFrame.put("view1", newViewData);
+                    newFrame.put("view3", newViewData);
                     filteredFrames.add(newFrame);
                 }
             }
