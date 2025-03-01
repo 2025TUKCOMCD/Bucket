@@ -22,13 +22,18 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
+    // ───────────────────────────────────────────
+    // 권한 관련 상수
+    // ───────────────────────────────────────────
     private val PERMISSIONS_REQUEST_CODE = 1
     private val requiredPermissions = arrayOf(
         Manifest.permission.CAMERA,
         Manifest.permission.RECORD_AUDIO
     )
 
-    // WebRTC 관련
+    // ───────────────────────────────────────────
+    // WebRTC 관련 필드
+    // ───────────────────────────────────────────
     private lateinit var peerConnectionFactory: PeerConnectionFactory
     private lateinit var videoCapturer: VideoCapturer
     private lateinit var videoSource: VideoSource
@@ -37,23 +42,36 @@ class MainActivity : AppCompatActivity() {
     private lateinit var eglBase: EglBase
     private var peerConnection: PeerConnection? = null
 
-    // 시그널링 서버 & 포즈 서버와 통신할 클라이언트 (예: SignalingClient)
+    // 시그널링 서버 & 포즈 서버와 통신할 클라이언트
     private var signalingClient: SignalingClient? = null
 
     // 전면 or 후면 카메라 사용 여부
     private var isFrontCameraUsed: Boolean = false
 
-    // MediaPipe Pose
+    // ───────────────────────────────────────────
+    // MediaPipe Pose 관련
+    // ───────────────────────────────────────────
     private lateinit var poseLandmarker: PoseLandmarker
     private lateinit var poseOverlayView: PoseOverlayView
 
+    // ───────────────────────────────────────────
+    // ★ 추가: 포즈 전송 간격 설정
+    // ───────────────────────────────────────────
+    private val POSE_SEND_INTERVAL_MS = 333L  // 333ms 간격 (1초에 최대 3번)
+    private var lastPoseSendTime = 0L         // 마지막 포즈 전송 시각
+
+    // ───────────────────────────────────────────
+    // onCreate
+    // ───────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // View 연결
         surfaceViewRenderer = findViewById(R.id.surface_view)
         poseOverlayView = findViewById(R.id.poseOverlay)
 
+        // 권한 체크
         if (!hasPermissions()) {
             ActivityCompat.requestPermissions(this, requiredPermissions, PERMISSIONS_REQUEST_CODE)
         } else {
@@ -61,12 +79,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 권한 체크
     private fun hasPermissions(): Boolean {
         return requiredPermissions.all {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
+    // 권한 요청 결과
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -78,6 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 초기화 전체 프로세스
     private fun initAll() {
         // 1) EGL 초기화
         eglBase = EglBase.create()
@@ -89,9 +110,9 @@ class MainActivity : AppCompatActivity() {
         initializePoseLandmarker()
     }
 
-    // =======================
-    // WEBRTC 초기화
-    // =======================
+    // ───────────────────────────────────────────
+    // WebRTC 초기화
+    // ───────────────────────────────────────────
     private fun initializeWebRTC() {
         val initOptions = PeerConnectionFactory.InitializationOptions
             .builder(this)
@@ -99,7 +120,9 @@ class MainActivity : AppCompatActivity() {
         PeerConnectionFactory.initialize(initOptions)
 
         val encoderFactory = DefaultVideoEncoderFactory(
-            eglBase.eglBaseContext, /* enableIntelVp8Encoder= */true, /* enableH264HighProfile= */true
+            eglBase.eglBaseContext,
+            /* enableIntelVp8Encoder= */true,
+            /* enableH264HighProfile= */true
         )
         val decoderFactory = DefaultVideoDecoderFactory(eglBase.eglBaseContext)
 
@@ -108,23 +131,28 @@ class MainActivity : AppCompatActivity() {
             .setVideoDecoderFactory(decoderFactory)
             .createPeerConnectionFactory()
 
+        // SurfaceViewRenderer 초기화
         surfaceViewRenderer.init(eglBase.eglBaseContext, null)
-        // 전면 카메라 사용 시 미러링
+        // 전면 카메라 시 미러링
         surfaceViewRenderer.setMirror(true)
 
+        // 카메라 시작
         startCameraCapture()
+
+        // PeerConnection 생성
         createPeerConnection()
 
-        // 시그널링 서버 + 포즈 서버와 연결할 예시 (SignalingClient 등)
-        // 여기서는 한 클래스에서 시그널링/포즈 모두 처리한다고 가정
+        // 시그널링 & 포즈 WebSocket 연결
         signalingClient = SignalingClient(
             signalingListener = { signalingMsg -> onSignalingMessageReceived(signalingMsg) },
             poseListener = { poseMsg -> onPoseMessageReceived(poseMsg) }
         )
 
+        // 기본 Offer 생성 (필요 시)
         createOffer()
     }
 
+    // 카메라 캡쳐 시작
     private fun startCameraCapture() {
         val enumerator = Camera2Enumerator(this)
         videoCapturer = createCameraCapturer(enumerator) ?: return
@@ -133,13 +161,12 @@ class MainActivity : AppCompatActivity() {
         val surfaceTextureHelper =
             SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext)
         videoCapturer.initialize(surfaceTextureHelper, this, videoSource.capturerObserver)
-        // 해상도, FPS 설정
         videoCapturer.startCapture(1280, 720, 30)
 
         localVideoTrack = peerConnectionFactory.createVideoTrack("VIDEO_TRACK_ID", videoSource)
         localVideoTrack.addSink(surfaceViewRenderer)
 
-        // Pose 분석을 위해, 프레임 콜백
+        // 프레임 콜백 -> MediaPipe Pose 분석
         localVideoTrack.addSink(object : VideoSink {
             override fun onFrame(frame: VideoFrame) {
                 processWebRTCFrameWithPose(frame)
@@ -147,9 +174,10 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    // 카메라 Capturer 생성 (전면 우선)
     private fun createCameraCapturer(enumerator: CameraEnumerator): VideoCapturer? {
         val deviceNames = enumerator.deviceNames
-        // 1) 전면 카메라 우선
+        // 전면
         for (deviceName in deviceNames) {
             if (enumerator.isFrontFacing(deviceName)) {
                 val capturer = enumerator.createCapturer(deviceName, null)
@@ -159,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        // 2) 후면 카메라
+        // 후면
         for (deviceName in deviceNames) {
             if (!enumerator.isFrontFacing(deviceName)) {
                 val capturer = enumerator.createCapturer(deviceName, null)
@@ -172,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
+    // PeerConnection 생성
     private fun createPeerConnection() {
         val iceServers = listOf(
             PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
@@ -183,6 +212,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onIceCandidate(candidate: IceCandidate) {
                     sendIceCandidate(candidate)
                 }
+
                 override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) {}
                 override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {}
                 override fun onIceConnectionReceivingChange(receiving: Boolean) {}
@@ -195,10 +225,12 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
+        // 로컬 트랙 추가
         val streamId = "LOCAL_STREAM_ID"
         peerConnection?.addTrack(localVideoTrack, listOf(streamId))
     }
 
+    // Offer 생성
     private fun createOffer() {
         val sdpConstraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
@@ -225,6 +257,7 @@ class MainActivity : AppCompatActivity() {
         }, sdpConstraints)
     }
 
+    // Offer 전송
     private fun sendSdpOfferToServer(sdp: SessionDescription) {
         val message = JSONObject().apply {
             put("type", "offer")
@@ -233,6 +266,7 @@ class MainActivity : AppCompatActivity() {
         signalingClient?.sendSignalingMessage(message.toString())
     }
 
+    // ICE Candidate 전송
     private fun sendIceCandidate(candidate: IceCandidate) {
         val message = JSONObject().apply {
             put("type", "candidate")
@@ -243,6 +277,7 @@ class MainActivity : AppCompatActivity() {
         signalingClient?.sendSignalingMessage(message.toString())
     }
 
+    // 시그널링 서버 메시지 처리
     private fun onSignalingMessageReceived(message: String) {
         val json = JSONObject(message)
         when (json.getString("type")) {
@@ -270,15 +305,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 포즈 서버에서 온 메시지
+    // 포즈 서버 메시지 처리
     private fun onPoseMessageReceived(message: String) {
         Log.d("PoseLandmarker", "받은 포즈 메시지: $message")
-        // 필요시 추가 처리
+        // 필요 시 추가 로직
     }
 
-    // =======================
-    // MediaPipe PoseLandmarker
-    // =======================
+    // ───────────────────────────────────────────
+    // MediaPipe PoseLandmarker 초기화
+    // ───────────────────────────────────────────
     private fun initializePoseLandmarker() {
         val baseOptions = BaseOptions.builder()
             .setModelAssetPath("pose_landmarker_lite.task")
@@ -300,6 +335,7 @@ class MainActivity : AppCompatActivity() {
         poseLandmarker = PoseLandmarker.createFromOptions(this, options)
     }
 
+    // WebRTC 프레임 -> MediaPipe Pose 처리
     private fun processWebRTCFrameWithPose(frame: VideoFrame) {
         val i420Buffer = frame.buffer.toI420() ?: return
         val width = i420Buffer.width
@@ -326,7 +362,7 @@ class MainActivity : AppCompatActivity() {
         var finalW = rotated.width
         var finalH = rotated.height
 
-        // 3) 전면 카메라면 미러링
+        // 3) 전면 카메라면 좌우 반전
         if (isFrontCameraUsed) {
             finalArgb = mirrorARGB(finalArgb, finalW, finalH)
         }
@@ -335,11 +371,12 @@ class MainActivity : AppCompatActivity() {
         val bitmap = Bitmap.createBitmap(finalW, finalH, Bitmap.Config.ARGB_8888)
         bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(finalArgb))
 
-        // 5) MediaPipe Pose
+        // 5) MediaPipe Pose 분석
         val mpImage = BitmapImageBuilder(bitmap).build()
         poseLandmarker.detectAsync(mpImage, System.currentTimeMillis())
     }
 
+    // PoseLandmarker 결과 처리
     private fun handlePoseResult(result: PoseLandmarkerResult) {
         val multiPoseLandmarks = result.landmarks()
         Log.d("PoseLandmarker", "landmarks size: ${multiPoseLandmarks.size}")
@@ -347,19 +384,34 @@ class MainActivity : AppCompatActivity() {
             val firstPose = multiPoseLandmarks[0]
             val avgVisibility = firstPose.map { it.visibility().orElse(0f) }.average()
             Log.d("PoseLandmarker", "avgVisibility: $avgVisibility")
+
+            // 가령 평균 가시도가 0.3 미만이면 무시
             if (avgVisibility < 0.3) return
 
+            // 오버레이 업데이트
             runOnUiThread {
                 poseOverlayView.updateLandmarks(firstPose)
             }
-            val jsonData = convertPoseDataToJson(firstPose)
-            Log.d("PoseLandmarker", "Sending pose data: $jsonData")
 
-            // 포즈 메시지 전송
-            signalingClient?.sendPoseMessage(jsonData)
+            // 현재 시각
+            val currentTime = System.currentTimeMillis()
+            // 전송 간격 검사
+            if (currentTime - lastPoseSendTime >= POSE_SEND_INTERVAL_MS) {
+                lastPoseSendTime = currentTime
+
+                // Pose -> JSON
+                val jsonData = convertPoseDataToJson(firstPose)
+                Log.d("PoseLandmarker", "Sending pose data: $jsonData")
+
+                // 포즈 메시지 전송
+                signalingClient?.sendPoseMessage(jsonData)
+            } else {
+                Log.d("PoseLandmarker", "Skip sending (too frequent)")
+            }
         }
     }
 
+    // Pose 데이터를 JSON으로 변환
     private fun convertPoseDataToJson(landmarks: List<NormalizedLandmark>): String {
         val pts = mutableMapOf<String, Map<String, Float>>()
         landmarks.forEachIndexed { index, lm ->
@@ -368,8 +420,8 @@ class MainActivity : AppCompatActivity() {
                 "y" to lm.y()
             )
         }
-        val view1 = mapOf("pts" to pts)
-        val frames = listOf(mapOf("view1" to view1))
+        val view3 = mapOf("pts" to pts)
+        val frames = listOf(mapOf("view3" to view3))
         val jsonMap = mapOf(
             "type" to "pose",
             "frames" to frames
@@ -377,6 +429,9 @@ class MainActivity : AppCompatActivity() {
         return JSONObject(jsonMap).toString()
     }
 
+    // ───────────────────────────────────────────
+    // 액티비티 종료 처리
+    // ───────────────────────────────────────────
     override fun onDestroy() {
         super.onDestroy()
         try {
@@ -393,9 +448,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ============================
+    // ───────────────────────────────────────────
     // I420 -> ARGB 변환
-    // ============================
+    // ───────────────────────────────────────────
     private fun convertI420ToARGB(
         dataY: ByteBuffer,
         dataU: ByteBuffer,
@@ -456,7 +511,7 @@ class MainActivity : AppCompatActivity() {
         for (row in 0 until height) {
             for (col in 0 until width) {
                 val srcIndex = (row * width + col) * 4
-                // 90도 -> (col, height-1-row)
+                // (col, height-1-row)
                 val dstCol = height - 1 - row
                 val dstRow = col
                 val dstIndex = (dstRow * height + dstCol) * 4
@@ -475,7 +530,7 @@ class MainActivity : AppCompatActivity() {
         for (row in 0 until height) {
             for (col in 0 until width) {
                 val srcIndex = (row * width + col) * 4
-                // 180도 -> (width-1-col, height-1-row)
+                // (width-1-col, height-1-row)
                 val dstRow = height - 1 - row
                 val dstCol = width - 1 - col
                 val dstIndex = (dstRow * width + dstCol) * 4
@@ -495,7 +550,7 @@ class MainActivity : AppCompatActivity() {
         for (row in 0 until height) {
             for (col in 0 until width) {
                 val srcIndex = (row * width + col) * 4
-                // 270도 -> (width-1-col, row)
+                // (width-1-col, row)
                 val dstCol = row
                 val dstRow = width - 1 - col
                 val dstIndex = (dstRow * height + dstCol) * 4
@@ -508,8 +563,8 @@ class MainActivity : AppCompatActivity() {
         return dest
     }
 
+    // 좌우 반전 (Front 카메라용)
     private fun mirrorARGB(source: ByteArray, width: Int, height: Int): ByteArray {
-        // 좌우 반전: (x -> width-1-x)
         val dest = ByteArray(source.size)
         for (row in 0 until height) {
             for (col in 0 until width) {
