@@ -59,7 +59,7 @@ async def receive_json(websocket: WebSocket):
                 response = {
                     #"user_id": user_id,
                     "status": "success",
-                    "message": "AI 모델 완료",
+                    "message": "AI process OK ",
                     #"prediction_result" : result
                 }
                 await websocket.send_text(json.dumps(response))

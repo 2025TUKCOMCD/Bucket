@@ -164,7 +164,8 @@
     const signalingConnection = new WebSocket(signalingUrl);
 
     // ✅ 포즈 데이터 전용 WebSocket
-    const poseUrl = 'ws://15.165.138.10:8080/pose';
+    //const poseUrl = 'ws://15.165.138.10:8080/pose';
+    const poseUrl = 'ws://localhost:8080/pose'
     const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
@@ -246,7 +247,18 @@
         const data = JSON.parse(message.data);
         console.log('[📩 포즈 데이터 수신]:', data);
         // 포즈 데이터를 활용하여 화면 업데이트 가능
+
+        // const data = message.data;
+        // console.log('AI 응답 수신: ',data);
+        //
+        // const resultDiv = document.getElementById('result');
+        // resultDiv.innerText = data;
+
     };
+
+    poseConnection.onerror = (error) => {
+        console.error('AI WebSocket 오류: ',error);
+    }
 
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection(config);
@@ -286,6 +298,5 @@
         });
     }
 </script>
-
 </body>
 </html>
