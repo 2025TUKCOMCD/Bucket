@@ -32,7 +32,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
         // 영상 데이터용 엔드포인트
         registry.addHandler(new SignalingWebSocketHandler(), "/signaling").setAllowedOrigins("*");
         // 포즈 데이터 전용 엔드포인트
-        registry.addHandler(new PoseWebSocketHandler(), "/pose").setAllowedOrigins("*");
+        //registry.addHandler(new PoseWebSocketHandler(), "/pose").setAllowedOrigins("*");
+        registry.addHandler(aiWebSocketHandler, "/pose").setAllowedOrigins("*");
 
     }
 
