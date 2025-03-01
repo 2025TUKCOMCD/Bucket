@@ -197,6 +197,7 @@
         console.log('[📩 시그널링 메시지 수신]:', data);
 
         if (data.type === 'offer') {
+            // offer 수신 시 remote description 설정
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
             peerConnection.createAnswer().then(answer => {
                 return peerConnection.setLocalDescription(answer);
@@ -204,21 +205,24 @@
                 signalingConnection.send(JSON.stringify(peerConnection.localDescription));
             });
         } else if (data.type === 'answer') {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            // 연결 상태 확인 후 answer 처리
+            if (peerConnection.signalingState === 'have-local-offer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            } else {
+                console.warn('Remote answer를 무시합니다. 현재 signaling state:', peerConnection.signalingState);
+            }
         } else if (data.type === 'candidate') {
-            // candidate 값이 객체인지 확인합니다.
+            // ICE candidate 처리
             let candidateObj;
             if (typeof data.candidate === 'object' && data.candidate !== null) {
                 candidateObj = data.candidate;
             } else {
-                // candidate가 문자열로 전달되는 경우
                 candidateObj = {
                     candidate: data.candidate,
                     sdpMid: data.sdpMid,
                     sdpMLineIndex: data.sdpMLineIndex
                 };
             }
-            // sdpMLineIndex가 문자열이면 숫자로 변환
             const candidateInit = {
                 candidate: candidateObj.candidate,
                 sdpMid: candidateObj.sdpMid,
@@ -231,10 +235,10 @@
                 console.warn('[⚠️ 잘못된 ICE Candidate 수신]:', data);
                 return;
             }
-
             peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
         }
     };
+
 
 
     // ✅ 포즈 데이터 서버 연결 이벤트
