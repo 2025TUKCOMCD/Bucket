@@ -6,6 +6,7 @@ import jakarta.websocket.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -40,8 +41,16 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        AIWebSocketHandler.session = session;
         log.info("클라이언트 연결됨: {}", session.getId());
+        //클라이언트 세션 등록
+        AIClient.registerClientSession(session.getId(), session);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        log.info("클라이언트 연결 종료: {}", session.getId());
+        // 클라이언트 세션 제거
+        AIClient.removeClientSession(session.getId());
     }
 
     // WebSocket으로 받은 메시지 처리
