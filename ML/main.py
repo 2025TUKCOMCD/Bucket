@@ -25,7 +25,7 @@ JSON_DIR = "/home/ubuntu/bucket"
 os.makedirs(JSON_DIR, exist_ok=True)
 
 # ST-GCN 모델 로드 (미리 저장된 모델 파일 경로)
-model = tf.keras.models.load_model("stgcn_model1.keras")
+# model = tf.keras.models.load_model("stgcn_model1.keras")
 
 # 예제용 keypoints 리스트 (실제 사용하는 관절 이름 리스트로 교체하세요)
 keypoints = ["nose", "left_eye", "right_eye", "left_ear", "right_ear",
@@ -48,19 +48,19 @@ async def receive_json(websocket: WebSocket):
                 json_data = json.loads(data)
 
                 # json 파일 저장
-                json_file_path = os.path.join(JSON_DIR,".json")
+                json_file_path = os.path.join(JSON_DIR,"skeleton.json")
                 with open(json_file_path, "w", encoding="utf-8") as json_file:
                     json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
                 print(f"Json 데이터 저장 완료: {json_file_path}")
 
-                result = predict_json_skeleton(json_file_path)
+                #result = predict_json_skeleton(json_file_path)
                 
                 response = {
                     #"user_id": user_id,
                     "status": "success",
                     "message": "AI 모델 완료",
-                    "prediction_result" : result
+                    #"prediction_result" : result
                 }
                 await websocket.send_text(json.dumps(response))
                 print(f"spring로 응답 전송:{response}")
