@@ -164,8 +164,8 @@
     const signalingConnection = new WebSocket(signalingUrl);
 
     // ✅ 포즈 데이터 전용 WebSocket
-    //const poseUrl = 'ws://15.165.138.10:8080/pose';
-    const poseUrl = 'ws://localhost:8080/pose'
+    const poseUrl = 'ws://15.165.138.10:8080/pose';
+    //const poseUrl = 'ws://localhost:8080/pose'
     const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
