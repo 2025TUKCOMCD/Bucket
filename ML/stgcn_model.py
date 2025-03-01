@@ -25,6 +25,7 @@ class GraphConvLayer(layers.Layer):
         x = tf.nn.leaky_relu(x)  # Activation function applied AFTER batch norm
         return x
 
+# ✅ ST-GCN 모델 정의
 @tf.keras.utils.register_keras_serializable()
 class STGCN(tf.keras.Model):
     def __init__(self, num_joints, num_features, adjacency_matrix, num_classes, **kwargs):
@@ -52,7 +53,7 @@ class STGCN(tf.keras.Model):
         
         self.activation = layers.Activation("relu")
         self.global_pool = layers.GlobalAveragePooling1D()
-        self.fc = layers.Dense(num_classes, activation="softmax", kernel_regularizer=tf.keras.regularizers.l2(0.7))
+        self.fc = layers.Dense(num_classes, activation="softmax", kernel_regularizer=tf.keras.regularizers.l2(0.1))
         self.dropout = layers.Dropout(0.5) 
 
     def build(self, input_shape):
