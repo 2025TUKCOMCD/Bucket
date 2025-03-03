@@ -27,10 +27,10 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
     // 사용할 관절 (필터링)
     private final List<String> Points = Arrays.asList(
-            "Point_0", "Point_2", "Point_5", "Point_7", "Point_8",
-            "Point_11", "Point_12", "Point_13", "Point_14", "Point_15",
-            "Point_16", "Point_17", "Point_18", "Point_21", "Point_23",
-            "Point_25", "Point_26", "Point_28", "Point_30", "Point_31", "Point_32"
+            "Point_0", "Point_7", "Point_8", "Point_11", "Point_12",
+            "Point_13", "Point_14", "Point_15", "Point_16", "Point_17",
+            "Point_18", "Point_21", "Point_22", "Point_23", "Point_24",
+            "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30"
     );
 
     @Autowired
