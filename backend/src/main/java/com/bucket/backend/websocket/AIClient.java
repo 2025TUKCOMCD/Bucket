@@ -23,7 +23,7 @@ public class AIClient{
     //ai서버 URL
     private final String AI_URL = "ws://localhost:5000/ws/connect";
 
-    // 연결된 클라이언트(Web)의 WebSocket 세션 저장
+    // 연결된 클라이언트(스마트폰)의 WebSocket 세션 저장
     private static final ConcurrentHashMap<String, WebSocketSession> clientSessions = new ConcurrentHashMap<>();
 
     public AIClient(){

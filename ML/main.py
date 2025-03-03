@@ -234,7 +234,7 @@ class PushUpPostureAnalyzer:
         
         feedback = "다음 사항을 수정하세요: "
         for key, message in faults.items():
-            feedback += f"\n- {message}"
+            feedback += f"<br>- {message}"
         
         return feedback
     
