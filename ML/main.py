@@ -230,7 +230,7 @@ class PushUpPostureAnalyzer:
         faults = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return "훌륭합니다! 푸쉬업 자세가 올바릅니다."
+            return "자세 올바르지 않음."
         
         feedback = "다음 사항을 수정하세요: "
         for key, message in faults.items():
