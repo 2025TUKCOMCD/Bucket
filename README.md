@@ -122,7 +122,7 @@
 
 
 ## 📆 프로젝트 일정
-![수행일정](![프로젝트 일정](https://github.com/user-attachments/assets/5bee067d-061c-4813-b88b-748ef42c11b1))
+![프로젝트 일정](https://github.com/user-attachments/assets/5bee067d-061c-4813-b88b-748ef42c11b1)
 
 ## 팀 notion 링크
 <a href="https://open-crab-7f9.notion.site/HomePT-17db7afc87b8806ab9caf5ea3b7262ef">notion</a>
