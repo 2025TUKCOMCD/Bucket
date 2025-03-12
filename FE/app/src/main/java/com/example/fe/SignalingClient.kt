@@ -14,12 +14,12 @@ class SignalingClient(
 
     // 시그널링 서버용 WebSocket
     private val requestSignaling = Request.Builder()
-        .url("ws://192.168.35.153:8080/signaling")
+        .url("ws://15.165.138.10:8080/signaling")
         .build()
 
     // 포즈 서버용 WebSocket
     private val requestPose = Request.Builder()
-        .url("ws://192.168.35.153:8080/pose")
+        .url("ws://15.165.138.10:8080/pose")
         .build()
 
     // 실제 WebSocket 객체(시그널링용, 포즈용) 2개

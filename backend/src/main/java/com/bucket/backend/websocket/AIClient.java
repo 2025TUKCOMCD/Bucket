@@ -6,9 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.bucket.backend.controller.AIWebSocketHandler.session;
@@ -20,6 +22,10 @@ public class AIClient{
     private static Session aiSession;
     //ai서버 URL
     private final String AI_URL = "ws://localhost:5000/ws/connect";
+
+    // 연결된 클라이언트(Web)의 WebSocket 세션 저장
+    private static final ConcurrentHashMap<String, WebSocketSession> clientSessions = new ConcurrentHashMap<>();
+
     public AIClient(){
         //AI서버와 연결 설정
         try{
@@ -40,9 +46,11 @@ public class AIClient{
     public void onMessage(String message){
         log.info("AI 응답 수신: {}",message);
         try{
-            if(session!= null && session.isOpen()){
-                session.sendMessage(new TextMessage(message));
-                log.info("클라이언트로 전달 완료");
+            for(WebSocketSession session : clientSessions.values()){
+                if(session!= null && session.isOpen()){
+                    session.sendMessage(new TextMessage(message));
+                    log.info("클라이언트로 전달 완료");
+                }
             }
         } catch (IOException e) {
             log.error("전달 중 오류 발생",e);
@@ -65,5 +73,14 @@ public class AIClient{
         }else{
             log.error("AI Socket 세션 닫혀 있음.");
         }
+    }
+    // 클라이언트 세션을 등록하는 메서드
+    public static void registerClientSession(String clientId, WebSocketSession session) {
+        clientSessions.put(clientId, session);
+    }
+
+    // 클라이언트 세션을 제거하는 메서드
+    public static void removeClientSession(String clientId) {
+        clientSessions.remove(clientId);
     }
 }
