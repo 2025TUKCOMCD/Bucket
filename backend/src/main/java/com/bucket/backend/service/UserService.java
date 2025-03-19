@@ -5,6 +5,7 @@ import com.bucket.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 
 @Service
@@ -28,12 +29,13 @@ public class UserService {
     }
 
     //로그인 기능
-    public String loginUser(String id, String pwd) {
+    public String loginUser(String id, String pwd, HttpSession session) {
         Optional<users> OPuser = userRepository.findById(id);
 
         if(OPuser.isPresent()){
             users user = OPuser.get();
             if(user.getPwd().equals(pwd)){
+                session.setAttribute("user", user);
                 return "로그인 성공!";
             }else{
                 return "비밀번호가 일치하지 않습니다.";
@@ -41,5 +43,11 @@ public class UserService {
         } else{
             return "존재하지 않는 ID입니다.";
         }
+    }
+
+    //로그아웃 기능
+    public String logoutUser(HttpSession session) {
+        session.invalidate();
+        return "로그아웃 성공";
     }
 }

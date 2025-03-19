@@ -3,6 +3,7 @@ package com.bucket.backend.controller;
 
 import com.bucket.backend.model.users;
 import com.bucket.backend.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,13 +32,18 @@ public class UserController {
 
     //로그인 API
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String id, @RequestParam String password) {
-        String response = userService.loginUser(id, password);
+    public ResponseEntity<String> login(@RequestParam String id, @RequestParam String password, HttpSession session) {
+        String response = userService.loginUser(id, password, session);
         if(response.equals("로그인 성공!")){
             return ResponseEntity.ok(response);
         }
         else {
             return ResponseEntity.badRequest().body(response);
         }
+    }
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpSession session) {
+        String response = userService.logoutUser(session);
+        return ResponseEntity.ok(response);
     }
 }
