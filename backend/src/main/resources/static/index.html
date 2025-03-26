@@ -258,7 +258,7 @@
 <!--                        <div class="difficulty-dot"></div>-->
 <!--                    </div>-->
 <!--                </div>-->
-<!--            </div>-->
+            </div>
             <div class="card-footer">
                 <span>추천 세트: 3 x 10-15회</span>
                 <button class="select-btn">선택하기</button>
@@ -289,7 +289,7 @@
 <!--                        <div class="difficulty-dot active"></div>-->
 <!--                        <div class="difficulty-dot active"></div>-->
 <!--                    </div>-->
-<!--                </div>-->
+<!--               </div>-->
             </div>
             <div class="card-footer">
                 <span>추천 세트: 3 x 12-15회</span>
@@ -305,7 +305,8 @@
         console.log(`선택한 운동: ${exercise}`);
 
         // 예시: 페이지 이동
-        // window.location.href = `video-comparison.html?exercise=${exercise}`;
+        // window.location.href = `video-comparison.html?exercise=${exercise}`;/
+        window.location.href = `${exercise}.html`;
 
         // 현재는 알림만 표시
         alert(`${exercise === 'pushup' ? '푸쉬업' : '런지'}을(를) 선택하셨습니다. 운동 페이지로 이동합니다.`);
@@ -316,7 +317,7 @@
         console.log('로그인 버튼 클릭됨');
 
         // 실제 구현 시 로그인 페이지로 이동하거나 모달 창을 표시할 수 있습니다
-        // window.location.href = 'login.html';
+        window.location.href = 'login.html';
     }
 </script>
 </body>
