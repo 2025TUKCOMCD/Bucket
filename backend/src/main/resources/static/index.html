@@ -342,6 +342,23 @@
         }
     }
 
+    // 로그아웃 처리
+    async function handleLogout() {
+        try {
+            const res = await fetch('/api/user/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('로그아웃 되었습니다.');
+                loginBtn.textContent = '로그인';
+                loginBtn.onclick = () => window.location.href = 'login.html';
+            }
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+        }
+    }
+
     //페이지 로딩 시 로그인 상태 확인
     window.addEventListener("DOMContentLoaded",checkLoginStatus)
 </script>

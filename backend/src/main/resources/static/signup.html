@@ -316,7 +316,7 @@
                 const resultText = await response.text();
 
                 if (response.ok) {
-                    alert('✅ ' + resultText + '\n로그인 페이지로 이동합니다.');
+                    alert(resultText + '\n로그인 페이지로 이동합니다.');
                     window.location.href = 'login.html';
                 } else {
                     alert(resultText);
