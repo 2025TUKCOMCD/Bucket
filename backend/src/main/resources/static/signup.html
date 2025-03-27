@@ -264,7 +264,7 @@
         // 생년월일 입력 필드의 기본값을 2000년 1월 1일로 설정
         document.getElementById('birthdate').valueAsDate = new Date(2000, 0, 1);
         
-        function handleSignup(event) {
+        async function handleSignup(event) {
             event.preventDefault();
             
             const username = document.getElementById('username').value;
@@ -272,6 +272,9 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const name = document.getElementById('name').value;
             const birthdate = document.getElementById('birthdate').value;
+            const email = document.getElementById('email').value;
+
+
             
             // 비밀번호 일치 여부 확인
             if (password !== confirmPassword) {
@@ -291,13 +294,37 @@
                 alert('생년월일을 입력해주세요.');
                 return false;
             }
-            
-            // 여기에 회원가입 처리 로직을 추가할 수 있습니다
-            console.log('회원가입 시도:', username, name, birthdate);
-            
-            // 예시: 회원가입 성공 시 로그인 페이지로 이동
-            alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
-            // window.location.href = 'login.html';
+
+            const data = {
+                id: username,
+                pwd: password,
+                username: name,
+                email: email,
+                birthday: birthdate
+            };
+
+            try{
+                const response = await fetch('/api/user/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                //const resultText = await.response.text();
+                const resultText = await response.text();
+
+                if (response.ok) {
+                    alert('✅ ' + resultText + '\n로그인 페이지로 이동합니다.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(resultText);
+                }
+            } catch (error){
+                console.error('회원가입 실패:', error);
+                alert('서버 오류가 발생했습니다.');
+            }
             
             return false;
         }
