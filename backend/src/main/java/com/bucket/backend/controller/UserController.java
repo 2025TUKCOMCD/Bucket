@@ -46,4 +46,14 @@ public class UserController {
         String response = userService.logoutUser(session);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(HttpSession session) {
+        users user = (users)session.getAttribute("user");
+        if(user != null) {
+            return ResponseEntity.ok(user);
+        }else{
+            return ResponseEntity.status(401).body("로그인 되지 않음");
+        }
+    }
 }

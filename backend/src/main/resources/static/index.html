@@ -225,7 +225,7 @@
 </head>
 <body>
 <div class="container">
-    <button class="login-button" onclick="login()">로그인</button>
+    <button id="loginBtn" class="login-button">로그인</button>
 
     <header>
         <h1>운동 선택</h1>
@@ -312,13 +312,38 @@
         alert(`${exercise === 'pushup' ? '푸쉬업' : '런지'}을(를) 선택하셨습니다. 운동 페이지로 이동합니다.`);
     }
 
-    function login() {
-        // 로그인 기능 구현
-        console.log('로그인 버튼 클릭됨');
+    // function login() {
+    //     // 로그인 기능 구현
+    //     console.log('로그인 버튼 클릭됨');
+    //
+    //     // 실제 구현 시 로그인 페이지로 이동하거나 모달 창을 표시할 수 있습니다
+    //     window.location.href = 'login.html';
+    // }
 
-        // 실제 구현 시 로그인 페이지로 이동하거나 모달 창을 표시할 수 있습니다
-        window.location.href = 'login.html';
+    const loginBtn = document.getElementById("loginBtn");
+
+    async function checkLoginStatus(){
+        try{
+            const res = await fetch('/api/user/me',{
+                method: 'GET',
+                credentials: 'include'
+            });
+            //로그인된 상태일 때
+            if(res.ok){
+                loginBtn.textContent = '로그아웃';
+                loginBtn.onclick = handleLogout;
+            }else{
+               //로그인이 안된 상태일 때
+                loginBtn.textContent='로그인';
+                loginBtn.onclick = () => window.location.href = 'login.html'
+            }
+        }catch (error){
+            console.error('로그아웃 실패',error);
+        }
     }
+
+    //페이지 로딩 시 로그인 상태 확인
+    window.addEventListener("DOMContentLoaded",checkLoginStatus)
 </script>
 </body>
 </html>
