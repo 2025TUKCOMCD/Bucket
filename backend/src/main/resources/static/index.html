@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Screen</title>
+    <title>운동 선택</title>
     <style>
         :root {
             --primary-color: #3a86ff;
@@ -11,6 +11,7 @@
             --dark-color: #1a1a2e;
             --light-color: #f8f9fa;
             --border-radius: 8px;
+            --card-hover: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -28,13 +29,15 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            position: relative;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            padding-top: 20px;
         }
 
         h1 {
@@ -43,264 +46,321 @@
             color: var(--primary-color);
         }
 
-        .video-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 30px;
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
         }
 
-        .video-box {
+        .login-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            z-index: 10;
+        }
+
+        .login-button:hover {
+            background-color: #2a75e6;
+        }
+
+        .exercise-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .exercise-card {
             flex: 1;
             min-width: 300px;
+            max-width: 450px;
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
 
-        .video-header {
+        .exercise-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .exercise-card:nth-child(1) .card-header {
             background-color: var(--primary-color);
-            color: white;
-            padding: 10px 15px;
-            font-weight: bold;
         }
 
-        .video-box:nth-child(2) .video-header {
+        .exercise-card:nth-child(2) .card-header {
             background-color: var(--secondary-color);
         }
 
-        .video-content {
-            padding: 15px;
+        .card-header {
+            padding: 15px 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
         }
 
-        video {
+        .card-image {
             width: 100%;
-            height: auto;
-            border-radius: var(--border-radius);
+            height: 200px;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
 
-        .text-output {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: var(--border-radius);
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-content {
             padding: 20px;
-            margin-bottom: 30px;
-            min-height: 200px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .text-output h2 {
+        .card-description {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .difficulty {
+            display: flex;
+            align-items: center;
             margin-bottom: 15px;
-            color: var(--primary-color);
-            text-align: left;
         }
 
-        .text-output-content {
+        .difficulty-label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .difficulty-meter {
+            display: flex;
+            gap: 5px;
+        }
+
+        .difficulty-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .difficulty-dot.active {
+            background-color: var(--primary-color);
+        }
+
+        .exercise-card:nth-child(2) .difficulty-dot.active {
+            background-color: var(--secondary-color);
+        }
+
+        .card-footer {
+            padding: 15px 20px;
             background-color: rgba(0, 0, 0, 0.2);
-            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .select-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
             border-radius: var(--border-radius);
-            min-height: 120px;
-            font-family: monospace;
-            font-size: 1.1rem;
-            white-space: pre-wrap;
-            overflow-y: auto;
-            text-align: left;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .exercise-card:nth-child(2) .select-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .select-btn:hover {
+            opacity: 0.9;
+        }
+
+        .target-muscles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .muscle-tag {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
         }
 
         @media (max-width: 768px) {
-            .video-container {
-                flex-direction: column;
-            }
-            
-            .video-box {
+            .exercise-card {
                 min-width: 100%;
             }
-            
+
             h1 {
-                font-size: 1.8rem;
+                font-size: 2rem;
+            }
+
+            .login-button {
+                position: relative;
+                display: block;
+                margin: 0 0 20px auto;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>운동 영상</h1>
-            <p>본인 운동영상와 참고영상을 비교해보세요!</p>
-        </header>
+<div class="container">
+    <button id="loginBtn" class="login-button">로그인</button>
 
-        <div class="video-container">
-            <div class="video-box">
-                <div class="video-header">
-                    <span>My Video</span>
-                </div>
-                <div class="video-content">
-                    <video id="video1" autoplay playsinline controls></video>
-                </div>
+    <header>
+        <h1>운동 선택</h1>
+        <p class="subtitle">오늘의 운동을 선택하세요</p>
+    </header>
+
+    <div class="exercise-container">
+        <!-- 푸쉬업 카드 -->
+        <div class="exercise-card" onclick="selectExercise('pushup')">
+            <div class="card-header">푸쉬업</div>
+            <div class="card-image">
+                <img src="./img/pushUp.jpg" alt="푸쉬업 이미지">
             </div>
-
-            <div class="video-box">
-                <div class="video-header">
-                    <span>Reference Video</span>
+            <div class="card-content">
+                <p class="card-description">
+                    푸쉬업은 가슴, 어깨, 삼두근을 강화하는 효과적인 상체 운동입니다.
+                    올바른 자세로 수행하면 코어 근육도 함께 단련됩니다.
+                </p>
+                <div class="target-muscles">
+                    <span class="muscle-tag">가슴</span>
+                    <span class="muscle-tag">어깨</span>
+                    <span class="muscle-tag">삼두근</span>
+                    <span class="muscle-tag">코어</span>
                 </div>
-                <div class="video-content">
-                    <video id="video2" autoplay playsinline controls></video>
-                </div>
+<!--                <div class="difficulty">-->
+<!--&lt;!&ndash;                <span class="difficulty-label">난이도:</span>&ndash;&gt;-->
+<!--                    <div class="difficulty-meter">-->
+<!--                        <div class="difficulty-dot active">-->
+<!--                        <div class="difficulty-dot active"></div>-->
+<!--                        <div class="difficulty-dot"></div>-->
+<!--                    </div>-->
+<!--                </div>-->
+            </div>
+            <div class="card-footer">
+                <span>추천 세트: 3 x 10-15회</span>
+                <button class="select-btn">선택하기</button>
             </div>
         </div>
 
-        <div class="text-output">
-            <h2>Real-time Feedback</h2>
-            <div class="text-output-content" id="result">
-                <!-- 스트리밍 관련 상태나 결과 메시지 출력 -->
-                
+        <!-- 런지 카드 -->
+        <div class="exercise-card" onclick="selectExercise('lunge')">
+            <div class="card-header">런지</div>
+            <div class="card-image">
+                <img src="./img/lunge.png" alt="런지 이미지">
+            </div>
+            <div class="card-content">
+                <p class="card-description">
+                    런지는 하체 근력과 균형감각을 향상시키는 효과적인 운동입니다.
+                    대퇴사두근, 햄스트링, 둔근을 집중적으로 단련합니다.
+                </p>
+                <div class="target-muscles">
+                    <span class="muscle-tag">대퇴사두근</span>
+                    <span class="muscle-tag">햄스트링</span>
+                    <span class="muscle-tag">둔근</span>
+                    <span class="muscle-tag">종아리</span>
+                </div>
+<!--                <div class="difficulty">-->
+<!--               <span class="difficulty-label">난이도:</span>-->
+<!--                    <div class="difficulty-meter">-->
+<!--                        <div class="difficulty-dot active"></div>-->
+<!--                        <div class="difficulty-dot active"></div>-->
+<!--                        <div class="difficulty-dot active"></div>-->
+<!--                    </div>-->
+<!--               </div>-->
+            </div>
+            <div class="card-footer">
+                <span>추천 세트: 3 x 12-15회</span>
+                <button class="select-btn">선택하기</button>
             </div>
         </div>
     </div>
+</div>
 
 <script>
-    // ✅ 시그널링 서버 URL
-    const signalingUrl = 'ws://15.165.138.10:8080/signaling';
-    const signalingConnection = new WebSocket(signalingUrl);
+    function selectExercise(exercise) {
+        // 여기에 선택한 운동에 따라 비디오 비교 페이지로 이동하는 로직을 추가할 수 있습니다
+        console.log(`선택한 운동: ${exercise}`);
 
-    // ✅ 포즈 데이터 전용 WebSocket
-    const poseUrl = 'ws://15.165.138.10:8080/pose';
-    //const poseUrl = 'ws://localhost:8080/pose'
-    const poseConnection = new WebSocket(poseUrl);
+        // 예시: 페이지 이동
+        // window.location.href = `video-comparison.html?exercise=${exercise}`;/
+        window.location.href = `${exercise}.html`;
 
-    let peerConnection;
-    const config = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            {
-                urls: 'turn:15.165.138.10:3478',
-                username: 'unused',              // static-auth-secret 사용 시 특별한 의미 없음
-                credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
-            }
-        ]
-    };
+        // 현재는 알림만 표시
+        alert(`${exercise === 'pushup' ? '푸쉬업' : '런지'}을(를) 선택하셨습니다. 운동 페이지로 이동합니다.`);
+    }
 
-    // video 요소 선택
-    const video1 = document.getElementById('video1');
-    const video2 = document.getElementById('video2');
-    const resultDiv = document.getElementById('result');
+    // function login() {
+    //     // 로그인 기능 구현
+    //     console.log('로그인 버튼 클릭됨');
+    //
+    //     // 실제 구현 시 로그인 페이지로 이동하거나 모달 창을 표시할 수 있습니다
+    //     window.location.href = 'login.html';
+    // }
 
-    // ✅ 시그널링 서버 연결 이벤트
-    signalingConnection.onopen = () => {
-        console.log('[✅ 시그널링] 서버에 연결됨');
-        createPeerConnection();
-    };
+    const loginBtn = document.getElementById("loginBtn");
 
-    // ✅ 시그널링 서버에서 메시지 수신
-    signalingConnection.onmessage = (message) => {
-        const data = JSON.parse(message.data);
-        console.log('[📩 시그널링 메시지 수신]:', data);
-
-        if (data.type === 'offer') {
-            // offer 수신 시 remote description 설정
-            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            peerConnection.createAnswer().then(answer => {
-                return peerConnection.setLocalDescription(answer);
-            }).then(() => {
-                signalingConnection.send(JSON.stringify(peerConnection.localDescription));
+    async function checkLoginStatus(){
+        try{
+            const res = await fetch('/api/user/me',{
+                method: 'GET',
+                credentials: 'include'
             });
-        } else if (data.type === 'answer') {
-            // 연결 상태 확인 후 answer 처리
-            if (peerConnection.signalingState === 'have-local-offer') {
-                peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            } else {
-                console.warn('Remote answer를 무시합니다. 현재 signaling state:', peerConnection.signalingState);
+            //로그인된 상태일 때
+            if(res.ok){
+                loginBtn.textContent = '로그아웃';
+                loginBtn.onclick = handleLogout;
+            }else{
+               //로그인이 안된 상태일 때
+                loginBtn.textContent='로그인';
+                loginBtn.onclick = () => window.location.href = 'login.html'
             }
-        } else if (data.type === 'candidate') {
-            // ICE candidate 처리
-            let candidateObj;
-            if (typeof data.candidate === 'object' && data.candidate !== null) {
-                candidateObj = data.candidate;
-            } else {
-                candidateObj = {
-                    candidate: data.candidate,
-                    sdpMid: data.sdpMid,
-                    sdpMLineIndex: data.sdpMLineIndex
-                };
-            }
-            const candidateInit = {
-                candidate: candidateObj.candidate,
-                sdpMid: candidateObj.sdpMid,
-                sdpMLineIndex: typeof candidateObj.sdpMLineIndex === 'string'
-                    ? Number(candidateObj.sdpMLineIndex)
-                    : candidateObj.sdpMLineIndex
-            };
-
-            if (!candidateInit.sdpMid && (candidateInit.sdpMLineIndex === null || candidateInit.sdpMLineIndex === undefined)) {
-                console.warn('[⚠️ 잘못된 ICE Candidate 수신]:', data);
-                return;
-            }
-            peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
+        }catch (error){
+            console.error('로그아웃 실패',error);
         }
-    };
-
-
-
-    // ✅ 포즈 데이터 서버 연결 이벤트
-    poseConnection.onopen = () => {
-        console.log('[✅ 포즈 데이터] 서버에 연결됨');
-    };
-
-    // ✅ 포즈 데이터 메시지 수신
-    poseConnection.onmessage = (message) => {
-        // const data = JSON.parse(message.data);
-        // console.log('[📩 포즈 데이터 수신]:', data);
-        // 포즈 데이터를 활용하여 화면 업데이트 가능
-
-        const data = JSON.parse(message.data);
-        console.log('AI 응답 수신: ',data.prediction_result);
-
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerText = data.prediction_result;
-
-    };
-
-    poseConnection.onerror = (error) => {
-        console.error('AI WebSocket 오류: ',error);
     }
 
-    function createPeerConnection() {
-        peerConnection = new RTCPeerConnection(config);
-
-        peerConnection.onicecandidate = event => {
-            if (event.candidate) {
-                console.log('[📤 ICE Candidate 전송]:', event.candidate);
-                signalingConnection.send(JSON.stringify({
-                    type: 'candidate',
-                    candidate: event.candidate
-                }));
+    // 로그아웃 처리
+    async function handleLogout() {
+        try {
+            const res = await fetch('/api/user/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                alert('로그아웃 되었습니다.');
+                loginBtn.textContent = '로그인';
+                loginBtn.onclick = () => window.location.href = 'login.html';
             }
-        };
-
-        // ✅ 원격 스트림 수신 시 video1에 할당
-        peerConnection.ontrack = event => {
-            console.log('[🎥 원격 비디오 수신]');
-            video1.srcObject = event.streams[0];
-        };
-
-        // ✅ 로컬 미디어 스트림 추가 (필요하면 활성화)
-        /*
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
-                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-                video2.srcObject = stream;
-            })
-            .catch(error => console.error('[❌ getUserMedia 에러]:', error));
-        */
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+        }
     }
 
-    function createOffer() {
-        peerConnection.createOffer().then(offer => {
-            return peerConnection.setLocalDescription(offer);
-        }).then(() => {
-            signalingConnection.send(JSON.stringify(peerConnection.localDescription));
-        });
-    }
+    //페이지 로딩 시 로그인 상태 확인
+    window.addEventListener("DOMContentLoaded",checkLoginStatus)
 </script>
 </body>
 </html>
