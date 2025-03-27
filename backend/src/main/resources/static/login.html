@@ -237,18 +237,30 @@
     </div>
 
     <script>
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
             
-            const username = document.getElementById('username').value;
+            const id = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            // 여기에 로그인 처리 로직을 추가할 수 있습니다
-            console.log('로그인 시도:', username);
-            
-            // 예시: 로그인 성공 시 메인 페이지로 이동
-            alert('로그인 성공! 메인 페이지로 이동합니다.');
-            window.location.href = 'index.html';
+
+            try{
+                const response = await fetch('/api/user/login?id=' + encodeURIComponent(id)+ '&password='+encodeURIComponent(password),{
+                    method: 'POST',
+                    credentials: 'include' //세션 쿠기 전달을 위해 필요함
+                });
+
+                const resultText = await response.text();
+
+                if(response.ok){
+                    alert(resultText);
+                    window.location.href='index.html';
+                } else{
+                    alert(resultText);
+                }
+
+            } catch (error){
+                alert("로그인 중 오류 발셍: "+error);
+            }
             
             return false;
         }
