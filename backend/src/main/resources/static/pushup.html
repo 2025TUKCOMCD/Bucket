@@ -160,11 +160,11 @@
 
 <script>
     // ✅ 시그널링 서버 URL
-    const signalingUrl = 'ws://15.165.138.10:8080/signaling';
+    const signalingUrl = 'ws://3.39.137.250:8080/signaling';
     const signalingConnection = new WebSocket(signalingUrl);
 
     // ✅ 포즈 데이터 전용 WebSocket
-    const poseUrl = 'ws://15.165.138.10:8080/pose';
+    const poseUrl = 'ws://3.39.137.250:8080/pose';
     //const poseUrl = 'ws://localhost:8080/pose'
     const poseConnection = new WebSocket(poseUrl);
 
@@ -173,7 +173,7 @@
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             {
-                urls: 'turn:15.165.138.10:3478',
+                urls: 'turn:3.39.137.250:3478',
                 username: 'unused',              // static-auth-secret 사용 시 특별한 의미 없음
                 credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
             }
