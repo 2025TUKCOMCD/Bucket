@@ -240,7 +240,7 @@ class PushUpPostureAnalyzer:
         return feedback
     
 # 슬라이딩 윈도우를 위한 프레임 버퍼 (32프레임 유지)
-frame_buffer = deque(maxlen=32)
+frame_buffer = deque(maxlen=16)
 step_size = 4  # 4프레임마다 결과 출력
 
 def process_json_data(json_data):
@@ -317,7 +317,7 @@ async def receive_json(websocket: WebSocket):
                 frame_buffer.append(new_frame)
 
                 # 32프레임이 쌓였을 경우 모델에 입력하여 분석
-                if len(frame_buffer) == 32:
+                if len(frame_buffer) == 16:
                     skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
                     feedback = analyzer.provide_feedback(skeleton_sequence)
                     
