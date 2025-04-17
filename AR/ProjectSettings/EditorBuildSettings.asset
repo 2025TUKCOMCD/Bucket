@@ -4,72 +4,7 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HelloMR-3dof.unity
-    guid: 1930205874b70904a994853afcaa90af
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HelloMR.unity
-    guid: dd74f1c9685ef48499229d4957b58000
-  - enabled: 0
-    path: Assets/NRSDK/Demos/RGBCamera-Record.unity
-    guid: 372f49325786d554ea3a2306e1178303
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HandTracking_Record.unity
-    guid: 5e5a9f397f2405f4197c51239c5e6e5c
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HandTracking.unity
-    guid: 7d33c4a3bc8da9745acac0e1d62c44bf
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HelloMR-ChangeMode.unity
-    guid: 41d153a75cbcfa3428debfbb51e52312
-  - enabled: 0
-    path: Assets/NRSDK/Demos/HelloMR-ResetCamera.unity
-    guid: 6829bb5b5488a4fbbb9c00ed3c63c86c
-  - enabled: 0
-    path: Assets/NRSDK/Demos/ImageTracking.unity
-    guid: cae4e384337e206419d07ea80c82ee12
-  - enabled: 0
-    path: Assets/NRSDK/Demos/Input-ControllerInfo.unity
-    guid: 6ef6276ed2b85294cac90487e2b5ee3d
-  - enabled: 0
-    path: Assets/NRSDK/Demos/Input-Interaction.unity
-    guid: 82b6b95ba2d629541bef6bd4247a6f60
-  - enabled: 0
-    path: Assets/NRSDK/Demos/Input-VirtualController.unity
-    guid: 8438388fcd9d9714f81e1bea09d02c18
-  - enabled: 0
-    path: Assets/NRSDK/Demos/MappingExample.unity
-    guid: e75a8c0548f7c3b44a68f2662d18d5a0
-  - enabled: 0
-    path: Assets/NRSDK/Demos/Meshing.unity
-    guid: 843bcf8f6426488479e1c5ed31583774
-  - enabled: 0
-    path: Assets/NRSDK/Demos/PlayVideo.unity
-    guid: 7097122950c0db34eb5c402019d906dd
-  - enabled: 0
-    path: Assets/NRSDK/Demos/RenderForFocusPlane.unity
-    guid: 3d41ef43348771145a48b07ad4c16dc5
-  - enabled: 0
-    path: Assets/NRSDK/Demos/RGBCamera.unity
-    guid: 993f597e755bea3458ddb3a66c40bdd2
-  - enabled: 0
-    path: Assets/NRSDK/Demos/RGBCamera-Capture.unity
-    guid: e0b534db44fbb1a48b5410630bbcd749
-  - enabled: 0
-    path: Assets/NRSDK/Demos/RGBCamera-Yuv.unity
-    guid: ac5e83daee470974aa9ec9909688daca
-  - enabled: 0
-    path: Assets/NRSDK/Demos/XR-SinglePassStereoRendering.unity
-    guid: 3d16adcca69a7443781c96d7ff63cdce
-  - enabled: 0
-    path: Assets/Scenes/MainScene.unity
-    guid: a9df08c03d8955741bf620e70b2450bf
-  - enabled: 1
-    path: Assets/Scenes/PTScene.unity
-    guid: 0ad118020eaf7304ab7eb7312b522921
+  m_Scenes: []
   m_configObjects:
-    UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 3ccff12f790a2ad45b5e763bbdf37631, type: 2}
-    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: a2eb6f8d6eaa71e4085235fc4934e58c, type: 2}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 70137d6673cd8f64ba784a7ecae022a2, type: 2}
-    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: fcd62c4e78ecfe744a5bbcb4898887f3, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: de52c56dccb0e7246b40c1452d04fc8a, type: 2}
+    com.unity.xr.management.xrealsettings: {fileID: 11400000, guid: fe576c3407408134c8bedaba3dfe62c5, type: 2}
