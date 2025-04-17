@@ -13,7 +13,7 @@ import java.util.Optional;
 
 //유저 비디오 관련 Controller
 @RestController
-@RequestMapping("api/user-videos")
+@RequestMapping("/api/user-videos")
 public class UserVideoController {
 
     private final UserVideoService userVideoService;

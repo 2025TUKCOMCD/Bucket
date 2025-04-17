@@ -27,10 +27,10 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
     // 사용할 관절 (필터링)
     private final List<String> Points = Arrays.asList(
-            "Point_0", "Point_2", "Point_5", "Point_7", "Point_8",
-            "Point_11", "Point_12", "Point_13", "Point_14", "Point_15",
-            "Point_16", "Point_17", "Point_18", "Point_21", "Point_23",
-            "Point_25", "Point_26", "Point_28", "Point_30", "Point_31", "Point_32"
+            "Point_0", "Point_7", "Point_8", "Point_11", "Point_12",
+            "Point_13", "Point_14", "Point_15", "Point_16", "Point_17",
+            "Point_18", "Point_21", "Point_22", "Point_23", "Point_24",
+            "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30"
     );
 
     @Autowired
@@ -81,7 +81,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
         for (Map<String, Object> frame : frames) {
             Map<String, Object> newFrame = new HashMap<>();
-            Map<String, Object> viewData = (Map<String, Object>) frame.get("view1");
+            Map<String, Object> viewData = (Map<String, Object>) frame.get("view3");
 
             if (viewData != null) {
                 Map<String, Object> pts = (Map<String, Object>) viewData.get("pts");
@@ -99,7 +99,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
                     Map<String, Object> newViewData = new HashMap<>();
                     newViewData.put("pts", filteredPts);
 
-                    newFrame.put("view1", newViewData);
+                    newFrame.put("view3", newViewData);
                     filteredFrames.add(newFrame);
                 }
             }
