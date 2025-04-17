@@ -180,16 +180,28 @@
     //     ]
     // };
 
-    const pc = new RTCPeerConnection({
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            {
-                urls: "turn:3.39.137.250:3478",
-                username: "webrtcuser",
-                credential: "secret-bucket123"
-            }
-        ]
-    });
+     let peerConnection;
+     const config = {
+         iceServers: [
+             { urls: 'stun:stun.l.google.com:19302' },
+             {
+                 urls: 'turn:3.39.137.250:3478',
+                 username: 'webrtcuser',              // static-auth-secret 사용 시 특별한 의미 없음
+                 credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
+             }
+         ]
+     };
+
+    // const pc = new RTCPeerConnection({
+    //     iceServers: [
+    //         { urls: 'stun:stun.l.google.com:19302' },
+    //         {
+    //             urls: "turn:3.39.137.250:3478",
+    //             username: "webrtcuser",
+    //             credential: "secret-bucket123"
+    //         }
+    //     ]
+    // });
 
     // video 요소 선택
     const video1 = document.getElementById('video1');
