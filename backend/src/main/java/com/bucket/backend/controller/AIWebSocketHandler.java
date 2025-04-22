@@ -3,6 +3,8 @@ package com.bucket.backend.controller;
 import com.bucket.backend.websocket.AIClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.websocket.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,9 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     public static WebSocketSession session; // Spring WebSocket 세션 관리
     private final AIClient aiClient;  //AI서버와 연결된 session
+    @Getter
+    @Setter
+    private static String selectedExercise = "pushup"; //기본값
 
     // 사용할 관절 (필터링)
     private final List<String> Points = Arrays.asList(
@@ -32,6 +37,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
             "Point_18", "Point_21", "Point_22", "Point_23", "Point_24",
             "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30"
     );
+
 
     @Autowired
     public AIWebSocketHandler(AIClient aiClient) {

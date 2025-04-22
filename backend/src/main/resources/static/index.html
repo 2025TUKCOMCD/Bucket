@@ -250,14 +250,6 @@
                     <span class="muscle-tag">삼두근</span>
                     <span class="muscle-tag">코어</span>
                 </div>
-<!--                <div class="difficulty">-->
-<!--&lt;!&ndash;                <span class="difficulty-label">난이도:</span>&ndash;&gt;-->
-<!--                    <div class="difficulty-meter">-->
-<!--                        <div class="difficulty-dot active">-->
-<!--                        <div class="difficulty-dot active"></div>-->
-<!--                        <div class="difficulty-dot"></div>-->
-<!--                    </div>-->
-<!--                </div>-->
             </div>
             <div class="card-footer">
                 <span>추천 세트: 3 x 10-15회</span>
@@ -282,14 +274,6 @@
                     <span class="muscle-tag">둔근</span>
                     <span class="muscle-tag">종아리</span>
                 </div>
-<!--                <div class="difficulty">-->
-<!--               <span class="difficulty-label">난이도:</span>-->
-<!--                    <div class="difficulty-meter">-->
-<!--                        <div class="difficulty-dot active"></div>-->
-<!--                        <div class="difficulty-dot active"></div>-->
-<!--                        <div class="difficulty-dot active"></div>-->
-<!--                    </div>-->
-<!--               </div>-->
             </div>
             <div class="card-footer">
                 <span>추천 세트: 3 x 12-15회</span>
@@ -300,25 +284,28 @@
 </div>
 
 <script>
-    function selectExercise(exercise) {
-        // 여기에 선택한 운동에 따라 비디오 비교 페이지로 이동하는 로직을 추가할 수 있습니다
-        console.log(`선택한 운동: ${exercise}`);
+    async function selectExercise(exercise) {
+        try{
+            const res = await fetch('/api/exercise/select',{
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({exercise})
+            });
 
-        // 예시: 페이지 이동
-        // window.location.href = `video-comparison.html?exercise=${exercise}`;/
-        window.location.href = `${exercise}.html`;
+            if(res.ok){
+                console.log(`선택한 운동: ${exercise}`);
+                window.location.href = `${exercise}.html`;
+            } else {
+                alert('운동 선택에 실패했습니다.');
+            }
+        } catch (e) {
+            console.error('운동 선택 중 오류 발생',err);
+        }
 
-        // 현재는 알림만 표시
-        alert(`${exercise === 'pushup' ? '푸쉬업' : '런지'}을(를) 선택하셨습니다. 운동 페이지로 이동합니다.`);
+        //(`${exercise === 'pushup' ? '푸쉬업' : '런지'}을(를) 선택하셨습니다. 운동 페이지로 이동합니다.`);
+
     }
 
-    // function login() {
-    //     // 로그인 기능 구현
-    //     console.log('로그인 버튼 클릭됨');
-    //
-    //     // 실제 구현 시 로그인 페이지로 이동하거나 모달 창을 표시할 수 있습니다
-    //     window.location.href = 'login.html';
-    // }
 
     const loginBtn = document.getElementById("loginBtn");
 
