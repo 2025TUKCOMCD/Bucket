@@ -1,3 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FE</string>
+    <!-- 앱 이름 -->
+    <string name="app_name">FEApp</string>
+
+    <!-- 로그인 화면 -->
+    <string name="hint_id">아이디</string>
+    <string name="hint_password">비밀번호</string>
+    <string name="btn_login">로그인</string>
+    <string name="error_empty_fields">아이디와 비밀번호를 입력하세요</string>
+    <string name="login_success">로그인 성공!</string>
+    <string name="login_fail">로그인 실패: %1$s</string>
+    <string name="login_request_fail">로그인 요청 실패: %1$s</string>
+
+    <!-- 회원가입 화면 -->
+    <string name="hint_username">사용자명</string>
+    <string name="hint_email">이메일</string>
+    <string name="hint_birthday">생일 (YYYY-MM-DD)</string>
+    <string name="hint_reg_id">회원 아이디</string>
+    <string name="hint_reg_password">회원 비밀번호</string>
+    <string name="btn_register">회원가입</string>
+    <string name="register_success">회원가입 성공!</string>
+    <string name="register_fail">회원가입 실패: %1$s</string>
+    <string name="register_request_fail">회원가입 요청 실패: %1$s</string>
+
+    <string name="home_title">홈</string>
+    <string name="btn_main_feature">메인 기능 실행</string>
+    <string name="btn_view_history">내 기록 보기</string>
+
+    <!-- UploadActivity 용 -->
+    <string name="hint_sport">운동명 입력</string>
+    <string name="hint_date">날짜 입력 (YYYY-MM-DD)</string>
+    <string name="hint_url">비디오 URL 입력</string>
+    <string name="hint_feedback">피드백 입력</string>
+    <string name="btn_upload">기록 업로드</string>
+
+    <string name="selected_date">선택된 날짜: %1$s</string>
+    <string name="hint_video_url">비디오 URL</string>
+    <string name="btn_finish_exercise">운동 종료</string>
 </resources>

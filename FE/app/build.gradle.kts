@@ -49,7 +49,7 @@ dependencies {
     // WebRTC, OkHttp
     implementation("io.getstream:stream-webrtc-android:1.3.7")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
 
     // AndroidX, Material 등...
     implementation(libs.androidx.core.ktx)

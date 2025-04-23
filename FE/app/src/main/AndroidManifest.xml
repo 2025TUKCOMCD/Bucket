@@ -1,34 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    package="com.example.fe">
 
+    +   <!-- 네트워크, 카메라, 오디오 권한 선언 -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    +   <uses-permission android:name="android.permission.CAMERA"/>
+    +   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:usesCleartextTraffic="true"
+        android:name=".App"
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.FE"
-        tools:targetApi="31">
+        android:theme="@style/Theme.FE">
+
+        <!-- 1) 런처: 로그인 화면 -->
         <activity
-            android:name="com.example.fe.MainActivity"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- 2) 로그인 후 첫 화면: 홈 -->
+        <activity android:name=".HomeActivity" android:exported="false" />
+
+        <!-- 3) 메인 기능(스트리밍) 화면 -->
+        <activity android:name=".MainActivity" android:exported="false" />
+
+        <!-- 4) 운동 기록 확인 화면 -->
+        <activity android:name=".HistoryActivity" android:exported="false" />
+
+        <!-- (필요 시) 회원가입 화면 -->
+        <activity android:name=".RegisterActivity" android:exported="false" />
+
+        <activity android:name=".UploadActivity" android:exported="false"/>
+    </application>
 </manifest>
