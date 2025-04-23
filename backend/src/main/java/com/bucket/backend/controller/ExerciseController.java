@@ -31,10 +31,13 @@ public class ExerciseController {
 
         try{
             AIWebSocketHandler.setSelectedExercise(exercise);
+            
 
-//            Map<String, String> message = Map.of("command", "select_model", "exercise", exercise);
-//            String json = new ObjectMapper().writeValueAsString(message);
-//            aiClient.sendToAI(json);
+            //타입 구별
+            String json = new ObjectMapper().writeValueAsString(Map.of(
+                    "type", "select",
+                    "exercise", exercise));
+            aiClient.sendToAI(json);
 
             log.info("운동 선택됨 : {}", exercise);
             return ResponseEntity.ok("운동 선택 완료: " + exercise);
