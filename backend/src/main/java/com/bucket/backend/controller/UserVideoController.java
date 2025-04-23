@@ -76,8 +76,9 @@ public class UserVideoController {
         for (UserVideo v : videos) {
             Map<String,Object> row = new HashMap<>();
             row.put("vid",       v.getVid());
-            row.put("sportname", v.getSportname());
             row.put("date",      v.getRecordDate().toString());
+            row.put("sportname", v.getSportname());
+            row.put("videoUrl",  v.getVideoUrl());
             row.put("feedback",  v.getFeedback() != null ? v.getFeedback() : "");
             result.add(row);
         }
