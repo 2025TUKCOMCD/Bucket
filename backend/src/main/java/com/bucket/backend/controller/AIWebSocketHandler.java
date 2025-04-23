@@ -3,6 +3,8 @@ package com.bucket.backend.controller;
 import com.bucket.backend.websocket.AIClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.websocket.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,14 +26,25 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     public static WebSocketSession session; // Spring WebSocket 세션 관리
     private final AIClient aiClient;  //AI서버와 연결된 session
+    @Getter
+    @Setter
+    private static String selectedExercise = "pushup"; //기본값
 
-    // 사용할 관절 (필터링)
-    private final List<String> Points = Arrays.asList(
+    // 사용할 관절 (푸쉬업)
+    private final List<String> Points_1 = Arrays.asList(
             "Point_0", "Point_7", "Point_8", "Point_11", "Point_12",
             "Point_13", "Point_14", "Point_15", "Point_16", "Point_17",
             "Point_18", "Point_21", "Point_22", "Point_23", "Point_24",
             "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30"
     );
+
+    // 사용할 관절 (런지)
+    private final List<String> Points_2 = Arrays.asList(
+            "Point_0", "Point_7", "Point_11", "Point_12", "Point_23", "Point_24",
+            "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30",
+            "Point_31", "Point_32"
+    );
+
 
     @Autowired
     public AIWebSocketHandler(AIClient aiClient) {
@@ -64,6 +77,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
             // AI Input형태로 변환
             Map<String, Object> transformedData = convertJson(rawData);
 
+            log.info("변환된 JSON: {}", transformedData);
             // 변환된 데이터 AI로 전송
             sendToAI(transformedData);
 
@@ -74,37 +88,44 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
 
     // JSON 변환 로직
     private Map<String, Object> convertJson(Map<String, Object> rawData) {
-        Map<String, Object> aiInput = new HashMap<>();
+        Map<String, Object> aiInput = new LinkedHashMap<>();
         List<Map<String, Object>> filteredFrames = new ArrayList<>();
 
         List<Map<String, Object>> frames = (List<Map<String, Object>>) rawData.get("frames");
 
+
+        String viewKey = getSelectedExercise().equals("pushup") ? "view3" : "view4";
+        List<String> selectedPoints = getSelectedExercise().equals("pushup") ? Points_1 : Points_2;
+
+        log.info("현재 운동 : {}",viewKey);
+
         for (Map<String, Object> frame : frames) {
-            Map<String, Object> newFrame = new HashMap<>();
-            Map<String, Object> viewData = (Map<String, Object>) frame.get("view3");
+            Map<String, Object> newFrame = new LinkedHashMap<>();
+            Map<String, Object> viewData = (Map<String, Object>) frame.get("view");
 
             if (viewData != null) {
                 Map<String, Object> pts = (Map<String, Object>) viewData.get("pts");
 
                 if (pts != null) {
-                    Map<String, Object> filteredPts = new HashMap<>();
+                    Map<String, Object> filteredPts = new LinkedHashMap<>();
 
                     // 필터링할 포인트만 선택
-                    for (String key : Points) {
+                    for (String key : selectedPoints) {
                         if (pts.containsKey(key)) {
                             filteredPts.put(key, pts.get(key));
                         }
                     }
 
-                    Map<String, Object> newViewData = new HashMap<>();
+                    Map<String, Object> newViewData = new LinkedHashMap<>();
                     newViewData.put("pts", filteredPts);
 
-                    newFrame.put("view3", newViewData);
+                    newFrame.put(viewKey, newViewData);
                     filteredFrames.add(newFrame);
                 }
             }
         }
 
+        aiInput.put("type","pose");
         aiInput.put("frames", filteredFrames);
 
         return aiInput;
