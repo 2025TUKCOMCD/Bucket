@@ -62,7 +62,7 @@ public class UserVideoController {
     // 로그인된 유저 자신의 운동 기록 전체 조회 기능 추가
     // GET /api/user-videos/me
     // ───────────────────────────────────────────────────────────
-    @GetMapping("/me")
+    @GetMapping("/my")
     public ResponseEntity<?> getMyVideos(HttpSession session) {
         users user = (users) session.getAttribute("user");
         if (user == null) {
