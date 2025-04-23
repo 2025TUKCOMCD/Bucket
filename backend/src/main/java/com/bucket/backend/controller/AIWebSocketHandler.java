@@ -77,6 +77,7 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
             // AI Input형태로 변환
             Map<String, Object> transformedData = convertJson(rawData);
 
+            log.info("변환된 JSON: {}", transformedData);
             // 변환된 데이터 AI로 전송
             sendToAI(transformedData);
 
