@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="날짜"
+        android:paddingTop="4dp"/>
+    <TextView
+        android:id="@+id/tvSport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="운동명"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/tvUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autoLink="web"
+        android:textColorLink="@color/linkColor"
+        android:textSize="14sp"
+        android:paddingTop="4dp"
+        android:hint="@string/hint_video_url"/>
+
+    <TextView
+        android:id="@+id/tvFeedback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="피드백"
+        android:paddingTop="4dp"/>
+
+
+</LinearLayout>
