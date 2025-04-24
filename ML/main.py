@@ -461,12 +461,15 @@ async def receive_json(websocket: WebSocket):
                 data = await websocket.receive_text()
                 msg = json.loads(data)
 
+                logger.info(f"메시지 수신됨 test: {data}")
+
                 msg_type = msg.get("type")
 
                 analyzer = None
                 # 운동 선택인 경우
                 if msg_type == "select":
                     exercise = msg.get("exercise")
+                    analyzer = None
                     if exercise == "pushup":
                         #푸쉬업 모델 실행
                         analyzer = pushup_load()
@@ -560,9 +563,11 @@ async def receive_json(websocket: WebSocket):
                 # print(f"spring로 응답 전송:{response}")
 
             except Exception as e:
+                logger.error(f"메시지 수신 중 오류:{e}")
                 print(f"Websocket Error: {e}")
                 break
     except Exception as e:
+        logger.error("websocket 세션 종료: {e}")
         print(f"Websocket Error: {e}")
     finally:
         print("Websocket 종료 처리 완료.")
