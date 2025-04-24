@@ -68,17 +68,41 @@ public class AIClient{
 
     public void sendToAI(String json)throws IOException{
         try{
-            if(aiSession != null && aiSession.isOpen()){
+//            if(aiSession != null && aiSession.isOpen()){
+//                aiSession.getBasicRemote().sendText(json);
+//                log.info("AI 모델로 데이터 전송: {}",json);
+//            }else{
+//                log.error("AI Socket 세션 닫혀 있음.");
+//            }
+
+            if (aiSession == null || !aiSession.isOpen()) {
+                log.warn("FastAPI 세션이 비정상입니다. 재연결 시도 중...");
+                connectToFastAPIServer();
+
+                if (aiSession == null || !aiSession.isOpen()) {
+                    log.error("재연결 실패. 메시지 전송 중단");
+                    return;
+                }
                 aiSession.getBasicRemote().sendText(json);
-                log.info("AI 모델로 데이터 전송: {}",json);
-            }else{
-                log.error("AI Socket 세션 닫혀 있음.");
+                log.info("FastAPI로 메시지 전송 완료: {}", json);
             }
+
         } catch (IOException e){
             log.error("메시지 전송 중 오류 발생", e);
         }
-
     }
+
+    // ✅ FastAPI 연결 시도
+    private void connectToFastAPIServer() {
+        try {
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            aiSession = container.connectToServer(this, new URI(AI_URL));
+            log.info("WebSocket 서버에 연결 성공!");
+        } catch (Exception e) {
+            log.error("WebSocket 연결 실패", e);
+        }
+    }
+
     // 클라이언트 세션을 등록하는 메서드
     public static void registerClientSession(String clientId, WebSocketSession session) {
         clientSessions.put(clientId, session);
