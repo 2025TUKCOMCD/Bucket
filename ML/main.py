@@ -531,12 +531,12 @@ async def receive_json(websocket: WebSocket):
                                 frame_buffer.popleft()  # 가장 오래된 프레임 제거
 
                 # json 파일 저장
-                json_file_path = f"{JSON_DIR}/user.json"
-                with open(json_file_path, "w", encoding="utf-8") as json_file:
-                    json.dump(json_data, json_file, indent=4, ensure_ascii=False)
+                #json_file_path = f"{JSON_DIR}/user.json"
+                #with open(json_file_path, "w", encoding="utf-8") as json_file:
+                    #json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
                 #print(f"Json 데이터 저장 완료: {json_file_path}")
-                logger.info(f"Json 데이터 저장 완료: {json_file_path}")
+                #logger.info(f"Json 데이터 저장 완료: {json_file_path}")
 
             except Exception as e:
                 logger.error(f"메시지 수신 중 오류:{e}")
