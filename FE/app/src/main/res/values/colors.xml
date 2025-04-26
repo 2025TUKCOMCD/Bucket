@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- 이미 있는 색상들... -->
+    <color name="purple_500">#6200EE</color>
+    <!-- 중략 -->
+
+    <!-- 비디오 URL 하이퍼링크용 색상 -->
+    <color name="linkColor">#1E88E5</color>
 </resources>

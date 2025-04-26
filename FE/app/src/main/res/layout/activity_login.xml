@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <EditText
+        android:id="@+id/etId"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="@string/hint_id"
+        android:importantForAutofill="yes"
+        android:autofillHints="username"
+        android:padding="8dp"
+        android:textColor="?attr/colorOnBackground"
+        android:textColorHint="?attr/colorOnBackground" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:hint="@string/hint_password"
+        android:inputType="textPassword"
+        android:importantForAutofill="yes"
+        android:autofillHints="password"
+        android:padding="8dp"
+        android:textColor="?attr/colorOnBackground"
+        android:textColorHint="?attr/colorOnBackground" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/btn_login"
+        android:minHeight="48dp"
+        android:padding="8dp"
+        android:textColor="?attr/colorOnPrimary" />
+
+    <TextView
+        android:id="@+id/tvRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:text="@string/btn_register"
+        android:textColor="?attr/colorPrimary"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

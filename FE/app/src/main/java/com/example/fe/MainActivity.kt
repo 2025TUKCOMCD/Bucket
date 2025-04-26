@@ -420,8 +420,8 @@ class MainActivity : AppCompatActivity() {
                 "y" to lm.y()
             )
         }
-        val view3 = mapOf("pts" to pts)
-        val frames = listOf(mapOf("view3" to view3))
+        val view = mapOf("pts" to pts)
+        val frames = listOf(mapOf("view" to view))
         val jsonMap = mapOf(
             "type" to "pose",
             "frames" to frames
