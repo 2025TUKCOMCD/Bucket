@@ -503,16 +503,22 @@ async def receive_json(websocket: WebSocket):
                     json_data = msg.get("frames",[])
                     logger.info("스켈레톤 데이터 확인")
                     if current_exercise is None:
+                        logger.info("1")
                         await websocket.send_text("아직 운동이 선택되지 않았습니다.")
+                        logger.info("2")
                         continue
 
                     # 버퍼 초기화
                     if current_exercise == "pushup":
                         new_frame = process_json_data(json_data)
+                        logger.info("3")
                     else:
                         new_frame = process_json_data_2(json_data)
+                        logger.info("4")
                     frame_buffer.append(new_frame)
 
+                    logger.info("5")
+                    
                     # 피드백 생성
                     if len(frame_buffer) == 16:
                         skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
