@@ -478,6 +478,7 @@ async def receive_json(websocket: WebSocket):
                 # 운동 선택인 경우
                 if msg_type == "select":
                     exercise = msg.get("exercise")
+                    logger.info("운동 선택 확인")
                     analyzer = None
                     if exercise == "pushup":
                         #푸쉬업 모델 실행
@@ -500,6 +501,7 @@ async def receive_json(websocket: WebSocket):
                 # 스켈레톤 데이터인 경우
                 elif msg_type == "pose":
                     json_data = msg.get("frames",[])
+                    logger.info("스켈레톤 데이터 확인")
                     if current_exercise is None:
                         await websocket.send_text("아직 운동이 선택되지 않았습니다.")
                         continue
