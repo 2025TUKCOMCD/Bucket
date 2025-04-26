@@ -121,7 +121,15 @@ class PushUpPostureAnalyzer:
     def detect_faulty_posture(self, skeleton_sequence):
         """푸쉬업 동작을 분석하고 잘못된 자세를 감지합니다."""
         predictions = self.model.predict(skeleton_sequence)
-        predicted_label = np.argmax(predictions)
+        predicted_label = np.argmax(predictions, axis=-1)[0]
+        confidence = predictions[0][predicted_label]
+
+        # ✅ 결과 저장
+        if predicted_label == 0:
+            result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
+        else:
+            result = f"❌ 잘못된 자세 감지 ({confidence * 100:.2f}% 확신)"
+
         faults = {}
         
         # ✅ 2. 뷰 차원이 1이면 squeeze() 적용
@@ -130,12 +138,11 @@ class PushUpPostureAnalyzer:
             
         if predicted_label == 1:  # 잘못된 자세로 분류된 경우
             faults["척추"] = self.check_neutral_spine(skeleton_sequence)
-            # faults["팔꿈치"] = self.check_elbow_angle(skeleton_sequence)
             faults["가슴"] = self.check_chest_movement(skeleton_sequence)
             faults["손 위치"] = self.check_hand_position(skeleton_sequence)
             faults["머리 정렬"] = self.check_head_alignment(skeleton_sequence)
         
-        return {k: v for k, v in faults.items() if v is not None}
+        return {k: v for k, v in faults.items() if v is not None}, result
     
     def check_neutral_spine(self, skeleton_sequence):
         """척추가 중립적인 상태를 유지하는지 확인합니다."""
@@ -257,14 +264,15 @@ class PushUpPostureAnalyzer:
     
     def provide_feedback(self, skeleton_sequence):
         """감지된 자세 오류를 기반으로 실시간 피드백을 제공합니다."""
-        faults = self.detect_faulty_posture(skeleton_sequence)
+        faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return "자세 올바르지 않음."
-        
-        feedback = "다음 사항을 수정하세요: "
+            return f"{result}<br> 자세가 올바릅니다."
+
+        feedback = f"{result}<br> 다음 사항을 수정하세요: "
+
         for key, message in faults.items():
-            feedback += f"<br>- {message}" 
+            feedback += f"<br> - {message}"
         
         return feedback
     
@@ -384,12 +392,11 @@ class LungePostureAnalyzer:
         """감지된 자세 오류를 기반으로 실시간 피드백을 제공합니다."""
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
-        print(result)
-        
         if not faults:
-            return f"{result} 측정 불가"
+            return f"{result}<br> 자세가 올바릅니다."
         
-        feedback = f"{result} 다음 사항을 수정하세요: "
+        feedback = f"{result}<br> 다음 사항을 수정하세요: "
+
         for key, message in faults.items():
             feedback += f"<br> - {message}"
         
