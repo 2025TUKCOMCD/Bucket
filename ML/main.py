@@ -459,6 +459,8 @@ async def receive_json(websocket: WebSocket):
     # AI 모델이 WebSocket을 통해 백엔드의 JSON 데이터를 받고 저장하는 WebSocket 서버
     await websocket.accept()
 
+    global current_exercise
+    
     #print("FastAPI WebSocket 연결 성공!")
     logger.info("FastAPI WebSocket 연결 성공!")
     try:    
@@ -535,39 +537,6 @@ async def receive_json(websocket: WebSocket):
 
                 #print(f"Json 데이터 저장 완료: {json_file_path}")
                 logger.info(f"Json 데이터 저장 완료: {json_file_path}")
-
-                # 1프레임 데이터를 슬라이딩 윈도우에 추가
-                # new_frame = process_json_data(json_data)
-                # frame_buffer.append(new_frame)
-
-                # if len(frame_buffer) == 16:
-                #     skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
-                #     feedback = analyzer.provide_feedback(skeleton_sequence)
-                    
-                #     response = {
-                #         "status": "success",
-                #         "message": "AI process OK",
-                #         "prediction_result": feedback
-                #     }
-                #     await websocket.send_text(json.dumps(response, ensure_ascii=False))
-                    
-                #     #print(f"spring로 응답 전송:{response}")
-                #     logger.info(f"spring로 응답 전송:{response}")
-
-                #     for _ in range(step_size):
-                #         if frame_buffer:
-                #             frame_buffer.popleft()  # 가장 오래된 프레임 제거
-                # skeleton_sequence = load_json_skeleton(file_path)
-                # feedback = analyzer.provide_feedback(skeleton_sequence)
-
-                # response = {
-                #     #"user_id": user_id,
-                #     "status": "success",
-                #     "message": "AI process OK ",
-                #     "prediction_result" : feedback
-                # }
-                # await websocket.send_text(json.dumps(response))
-                # print(f"spring로 응답 전송:{response}")
 
             except Exception as e:
                 logger.error(f"메시지 수신 중 오류:{e}")
