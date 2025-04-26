@@ -282,8 +282,9 @@ step_size = 4  # 4프레임마다 결과 출력
 def process_json_data(json_data):
     """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
     frame_data = np.zeros((1, 1, num_joints, num_features), dtype=np.float32)
-    
-    view3_data = json_data.get("frames", [{}])[0].get("view3", {}).get("pts", {})
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+        view3_data = json_data[0].get("view3", {}).get("pts", {})
     
     for joint_idx, joint_name in enumerate(keypoints):
         if joint_name in view3_data:
@@ -295,10 +296,11 @@ def process_json_data(json_data):
 def process_json_data_2(json_data):
     """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
     frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+    view4_data = json_data[0].get("view4", {}).get("pts", {})
     
-    view4_data = json_data.get("frames", [{}])[0].get("view4", {}).get("pts", {})
-    
-    for joint_idx, joint_name in enumerate(keypoints):
+    for joint_idx, joint_name in enumerate(keypoints_2):
         if joint_name in view4_data:
             frame_data[0, 0, joint_idx, 0] = view4_data[joint_name]["x"]
             frame_data[0, 0, joint_idx, 1] = view4_data[joint_name]["y"]
