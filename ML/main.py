@@ -298,7 +298,7 @@ def process_json_data_2(json_data):
     frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
 
     if isinstance(json_data, list) and len(json_data) > 0:
-    view4_data = json_data[0].get("view4", {}).get("pts", {})
+        view4_data = json_data[0].get("view4", {}).get("pts", {})
     
     for joint_idx, joint_name in enumerate(keypoints_2):
         if joint_name in view4_data:
