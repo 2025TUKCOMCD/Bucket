@@ -476,7 +476,6 @@ async def receive_json(websocket: WebSocket):
 
                 msg_type = msg.get("type")
 
-                analyzer = None
                 # 운동 선택인 경우
                 if msg_type == "select":
                     exercise = msg.get("exercise")
