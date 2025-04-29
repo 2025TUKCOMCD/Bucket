@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/fe/UploadActivity.kt
+// UploadActivity.kt
 package com.example.fe
 
 import android.os.Bundle
@@ -6,11 +6,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
-import java.io.IOException
 
 class UploadActivity : AppCompatActivity() {
 
@@ -27,22 +26,28 @@ class UploadActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 간단한 레이아웃이 필요합니다. 예: res/layout/activity_upload.xml
         setContentView(R.layout.activity_upload)
 
-        etSport     = findViewById(R.id.etSport)
-        etDate      = findViewById(R.id.etDate)
-        etUrl       = findViewById(R.id.etUrl)
-        etFeedback  = findViewById(R.id.etFeedback)
-        btnUpload   = findViewById(R.id.btnUpload)
+        etSport    = findViewById(R.id.etSport)
+        etDate     = findViewById(R.id.etDate)
+        etUrl      = findViewById(R.id.etUrl)
+        etFeedback = findViewById(R.id.etFeedback)
+        btnUpload  = findViewById(R.id.btnUpload)
+
+        // ❶ MainActivity에서 전달한 종목
+        val presetSport = intent.getStringExtra("sportname")
+        if (!presetSport.isNullOrEmpty()) {
+            etSport.setText(presetSport)
+            etSport.isEnabled = false
+        }
 
         btnUpload.setOnClickListener {
-            val sport    = etSport.text.toString().trim()
+            val sport    = presetSport ?: etSport.text.toString().trim()
             val date     = etDate.text.toString().trim()
             val url      = etUrl.text.toString().trim()
             val feedback = etFeedback.text.toString().trim()
-            // TODO: 실제 로그인된 유저의 uid 로 바꿔주세요
-            val uid      = 1
+            val uid      = getSharedPreferences("auth", MODE_PRIVATE)
+                .getInt("uid", 1)
 
             uploadRecord(sport, date, url, feedback, uid)
         }
@@ -55,7 +60,6 @@ class UploadActivity : AppCompatActivity() {
         feedback: String,
         uid: Int
     ) {
-        // JSON 생성
         val json = JSONObject().apply {
             put("sportname", sportname)
             put("recordDate", recordDate)
@@ -70,32 +74,21 @@ class UploadActivity : AppCompatActivity() {
             .post(body)
             .build()
 
-        // App.httpClient 는 App.kt 에서 만든 공유 클라이언트
         App.httpClient.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
+            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
                 runOnUiThread {
-                    Toast.makeText(
-                        this@UploadActivity,
-                        "업로드 실패: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@UploadActivity,
+                        "업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
                 runOnUiThread {
                     if (response.isSuccessful) {
-                        Toast.makeText(
-                            this@UploadActivity,
-                            "업로드 성공!",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@UploadActivity, "업로드 성공!", Toast.LENGTH_SHORT).show()
+                        finish()
                     } else {
-                        Toast.makeText(
-                            this@UploadActivity,
-                            "업로드 실패: ${response.code}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@UploadActivity,
+                            "업로드 실패: ${response.code}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
