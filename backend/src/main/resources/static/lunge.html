@@ -1,96 +1,113 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Screen</title>
     <style>
         :root {
-            --primary-color:   #3a86ff;
+            --primary-color: #3a86ff;
             --secondary-color: #8338ec;
-            --dark-color:      #1a1a2e;
-            --light-color:     #f8f9fa;
-            --radius:          8px;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --border-radius: 8px;
         }
         * { margin:0; padding:0; box-sizing:border-box }
         body {
-            font-family:sans-serif;
-            background:var(--dark-color);
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color:var(--dark-color);
             color:var(--light-color);
+            line-height:1.6;
             padding:20px;
         }
         .container { max-width:1400px; margin:0 auto }
         header { text-align:center; margin-bottom:30px }
-        h1 { font-size:2.5rem; color:var(--secondary-color) }
+        h1 {
+            font-size:2.5rem;
+            margin-bottom:10px;
+            color:var(--secondary-color);
+        }
+
         .video-container {
             display:flex;
+            flex-wrap:wrap;
             gap:20px;
-            overflow-x:auto;
             margin-bottom:30px;
         }
         .video-box {
-            flex:0 0 48%;
+            flex:1;
+            min-width:300px;
             background:rgba(255,255,255,0.05);
-            border-radius:var(--radius);
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+            border-radius:var(--border-radius);
             overflow:hidden;
+            box-shadow:0 4px 6px rgba(0,0,0,0.1);
         }
         .video-header {
-            padding:10px 15px;
-            background:var(--secondary-color);
+            background-color:var(--secondary-color);
             color:white;
+            padding:10px 15px;
             font-weight:bold;
         }
-        .video-box:first-child .video-header {
-            background:var(--primary-color);
+        .video-box:nth-child(1) .video-header {
+            background-color:var(--primary-color);
         }
         .video-content {
             padding:15px;
         }
-        /* ─────────────── “My Video” 회전용 래퍼 ─────────────── */
-        .video-box:first-child .video-content {
-            /* 원하는 높이 지정 (영상의 세로 길이가 이 높이에 맞춰집니다) */
-            height:300px;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            overflow:hidden;
-            padding:0; /* 세로 고정이므로 패딩 제거 */
-        }
-        .video-box:first-child .video-content video {
-            height:100%;
-            width:auto;
-            transform:rotate(90deg);
-            transform-origin:center center;
-            border-radius:var(--radius);
-        }
-        /* ───────────────────────────────────────────────────── */
 
-        /* Reference Video */
-        .video-box:nth-child(2) .video-content video {
+        /* ───────────── 추가된 부분 ───────────── */
+        /* 1) 세로로 찍힌 My Video를 가로로 돌려서 바로 보여줌 */
+        .video-box:nth-child(1) .video-content {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            height:300px;          /* 원하시는 높이로 조정 */
+            overflow:hidden;
+            padding:0;
+        }
+        .video-box:nth-child(1) .video-content video {
+            transform: rotate(-90deg);
+            transform-origin: center center;
+            width: auto;
+            height: 100%;
+            border-radius: var(--border-radius);
+        }
+        /* ──────────────────────────────────────── */
+
+        .video-content video {
             width:100%;
             height:auto;
-            border-radius:var(--radius);
+            border-radius:var(--border-radius);
         }
 
         .text-output {
             background:rgba(255,255,255,0.05);
-            border-radius:var(--radius);
+            border-radius:var(--border-radius);
             padding:20px;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom:30px;
             min-height:200px;
+            box-shadow:0 4px 6px rgba(0,0,0,0.1);
         }
-        .text-output h2 { color:var(--primary-color); margin-bottom:15px }
+        .text-output h2 {
+            margin-bottom:15px;
+            color:var(--primary-color);
+            text-align:left;
+        }
         .text-output-content {
             background:rgba(0,0,0,0.2);
             padding:15px;
-            border-radius:var(--radius);
+            border-radius:var(--border-radius);
             min-height:120px;
             font-family:monospace;
+            font-size:1.1rem;
+            white-space:pre-wrap;
             overflow-y:auto;
+            text-align:left;
         }
 
-        @media(max-width:768px){
+        @media (max-width: 768px) {
+            .video-container { flex-direction:column }
+            .video-box { min-width:100% }
             h1 { font-size:1.8rem }
         }
     </style>
@@ -104,13 +121,14 @@
 
     <div class="video-container">
         <div class="video-box">
-            <div class="video-header">My Video</div>
+            <div class="video-header"><span>My Video</span></div>
             <div class="video-content">
                 <video id="video1" autoplay playsinline controls></video>
             </div>
         </div>
+
         <div class="video-box">
-            <div class="video-header">Reference Video</div>
+            <div class="video-header"><span>Reference Video</span></div>
             <div class="video-content">
                 <video id="video2" autoplay playsinline controls></video>
             </div>
@@ -119,7 +137,9 @@
 
     <div class="text-output">
         <h2>Real-time Feedback</h2>
-        <div class="text-output-content" id="result"></div>
+        <div class="text-output-content" id="result">
+            <!-- 실시간 피드백 출력 -->
+        </div>
     </div>
 </div>
 
@@ -132,12 +152,12 @@
 
     let peerConnection;
     const config = {
-        iceServers:[
-            { urls:'stun:stun.l.google.com:19302' },
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
             {
-                urls:'turn:3.39.137.250:3478',
-                username:'webrtcuser',
-                credential:'secret-bucket123'
+                urls: 'turn:3.39.137.250:3478',
+                username: 'webrtcuser',
+                credential: 'secret-bucket123'
             }
         ]
     };
@@ -146,46 +166,48 @@
     const video2 = document.getElementById('video2');
     const resultDiv = document.getElementById('result');
 
-    signalingConnection.onopen = ()=> {
-        console.log('[✅ 시그널링] 연결됨');
+    signalingConnection.onopen = () => {
+        console.log('[✅ 시그널링] 서버에 연결됨');
         createPeerConnection();
     };
 
-    signalingConnection.onmessage = ({data})=> {
-        const msg = JSON.parse(data);
-        if(msg.type==='offer'){
-            peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
+    signalingConnection.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        if (data.type === 'offer') {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
             peerConnection.createAnswer()
-                .then(a=>peerConnection.setLocalDescription(a))
-                .then(()=>signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
+                .then(answer => peerConnection.setLocalDescription(answer))
+                .then(() => signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
         }
-        else if(msg.type==='answer' && peerConnection.signalingState==='have-local-offer'){
-            peerConnection.setRemoteDescription(new RTCSessionDescription(msg));
+        else if (data.type === 'answer' && peerConnection.signalingState === 'have-local-offer') {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
         }
-        else if(msg.type==='candidate'){
+        else if (data.type === 'candidate') {
             const c = new RTCIceCandidate({
-                candidate: msg.candidate,
-                sdpMid: msg.sdpMid,
-                sdpMLineIndex: msg.sdpMLineIndex
+                candidate: data.candidate,
+                sdpMid: data.sdpMid,
+                sdpMLineIndex: data.sdpMLineIndex
             });
             peerConnection.addIceCandidate(c);
         }
     };
 
-    poseConnection.onopen = ()=> console.log('[✅ 포즈] 연결됨');
-    poseConnection.onmessage = ({data})=>{
-        const d = JSON.parse(data);
-        resultDiv.innerText = d.prediction_result || '';
+    poseConnection.onopen = () => console.log('[✅ 포즈 데이터] 서버에 연결됨');
+    poseConnection.onmessage = (message) => {
+        const d = JSON.parse(message.data);
+        resultDiv.innerText = d.prediction_result;
     };
 
-    function createPeerConnection(){
+    poseConnection.onerror = (err) => console.error('AI WebSocket 오류:', err);
+
+    function createPeerConnection() {
         peerConnection = new RTCPeerConnection(config);
-        peerConnection.onicecandidate = e=> {
-            if(e.candidate) signalingConnection.send(JSON.stringify({type:'candidate', candidate:e.candidate}));
+        peerConnection.onicecandidate = e => {
+            if (e.candidate) {
+                signalingConnection.send(JSON.stringify({ type:'candidate', candidate:e.candidate }));
+            }
         };
-        peerConnection.ontrack = e=> {
-            video1.srcObject = e.streams[0];
-        };
+        peerConnection.ontrack = e => { video1.srcObject = e.streams[0]; };
     }
 </script>
 </body>
