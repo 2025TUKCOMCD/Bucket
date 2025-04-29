@@ -12,103 +12,113 @@
             --light-color: #f8f9fa;
             --border-radius: 8px;
         }
-        * { margin:0; padding:0; box-sizing:border-box }
-        body {
-            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color:var(--dark-color);
-            color:var(--light-color);
-            line-height:1.6;
-            padding:20px;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container { max-width:1400px; margin:0 auto }
-        header { text-align:center; margin-bottom:30px }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
         h1 {
-            font-size:2.5rem;
-            margin-bottom:10px;
-            color:var(--secondary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
         }
 
         .video-container {
-            display:flex;
-            flex-wrap:wrap;
-            gap:20px;
-            margin-bottom:30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
         }
+
         .video-box {
-            flex:1;
-            min-width:300px;
-            background:rgba(255,255,255,0.05);
-            border-radius:var(--border-radius);
-            overflow:hidden;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
-        }
-        .video-header {
-            background-color:var(--secondary-color);
-            color:white;
-            padding:10px 15px;
-            font-weight:bold;
-        }
-        .video-box:nth-child(1) .video-header {
-            background-color:var(--primary-color);
-        }
-        .video-content {
-            padding:15px;
-        }
-
-        /* ───────────── 추가된 부분 ───────────── */
-        /* 1) 세로로 찍힌 My Video를 가로로 돌려서 바로 보여줌 */
-        .video-box:nth-child(1) .video-content {
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            height:300px;          /* 원하시는 높이로 조정 */
-            overflow:hidden;
-            padding:0;
-        }
-        .video-box:nth-child(1) .video-content video {
-            transform: rotate(-90deg);
-            transform-origin: center center;
-            width: auto;
-            height: 100%;
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        /* ──────────────────────────────────────── */
 
-        .video-content video {
-            width:100%;
-            height:auto;
-            border-radius:var(--border-radius);
+        .video-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+
+        .video-box:nth-child(1) .video-header {
+            background-color: var(--primary-color);
+        }
+
+        .video-content {
+            padding: 15px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
         }
 
         .text-output {
-            background:rgba(255,255,255,0.05);
-            border-radius:var(--border-radius);
-            padding:20px;
-            margin-bottom:30px;
-            min-height:200px;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .text-output h2 {
-            margin-bottom:15px;
-            color:var(--primary-color);
-            text-align:left;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            text-align: left;
         }
+
         .text-output-content {
-            background:rgba(0,0,0,0.2);
-            padding:15px;
-            border-radius:var(--border-radius);
-            min-height:120px;
-            font-family:monospace;
-            font-size:1.1rem;
-            white-space:pre-wrap;
-            overflow-y:auto;
-            text-align:left;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            min-height: 120px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            text-align: left;
         }
 
         @media (max-width: 768px) {
-            .video-container { flex-direction:column }
-            .video-box { min-width:100% }
-            h1 { font-size:1.8rem }
+            .video-container {
+                flex-direction: column;
+            }
+
+            .video-box {
+                min-width: 100%;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
@@ -121,14 +131,18 @@
 
     <div class="video-container">
         <div class="video-box">
-            <div class="video-header"><span>My Video</span></div>
+            <div class="video-header">
+                <span>My Video</span>
+            </div>
             <div class="video-content">
                 <video id="video1" autoplay playsinline controls></video>
             </div>
         </div>
 
         <div class="video-box">
-            <div class="video-header"><span>Reference Video</span></div>
+            <div class="video-header">
+                <span>Reference Video</span>
+            </div>
             <div class="video-content">
                 <video id="video2" autoplay playsinline controls></video>
             </div>
@@ -145,10 +159,10 @@
 
 <script>
     const signalingUrl = 'ws://3.39.137.250:8080/signaling';
-    const poseUrl      = 'ws://3.39.137.250:8080/pose';
+    const poseUrl = 'ws://3.39.137.250:8080/pose';
 
     const signalingConnection = new WebSocket(signalingUrl);
-    const poseConnection      = new WebSocket(poseUrl);
+    const poseConnection = new WebSocket(poseUrl);
 
     let peerConnection;
     const config = {
@@ -175,40 +189,56 @@
         const data = JSON.parse(message.data);
         if (data.type === 'offer') {
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            peerConnection.createAnswer()
-                .then(answer => peerConnection.setLocalDescription(answer))
-                .then(() => signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
-        }
-        else if (data.type === 'answer' && peerConnection.signalingState === 'have-local-offer') {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-        }
-        else if (data.type === 'candidate') {
-            const c = new RTCIceCandidate({
+            peerConnection.createAnswer().then(answer => {
+                return peerConnection.setLocalDescription(answer);
+            }).then(() => {
+                signalingConnection.send(JSON.stringify(peerConnection.localDescription));
+            });
+        } else if (data.type === 'answer') {
+            if (peerConnection.signalingState === 'have-local-offer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            }
+        } else if (data.type === 'candidate') {
+            const candidateInit = {
                 candidate: data.candidate,
                 sdpMid: data.sdpMid,
-                sdpMLineIndex: data.sdpMLineIndex
-            });
-            peerConnection.addIceCandidate(c);
+                sdpMLineIndex: typeof data.sdpMLineIndex === 'string'
+                    ? Number(data.sdpMLineIndex)
+                    : data.sdpMLineIndex
+            };
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
         }
     };
 
-    poseConnection.onopen = () => console.log('[✅ 포즈 데이터] 서버에 연결됨');
-    poseConnection.onmessage = (message) => {
-        const d = JSON.parse(message.data);
-        resultDiv.innerText = d.prediction_result;
+    poseConnection.onopen = () => {
+        console.log('[✅ 포즈 데이터] 서버에 연결됨');
     };
 
-    poseConnection.onerror = (err) => console.error('AI WebSocket 오류:', err);
+    poseConnection.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        resultDiv.innerText = data.prediction_result;
+    };
+
+    poseConnection.onerror = (error) => {
+        console.error('AI WebSocket 오류: ', error);
+    };
 
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection(config);
-        peerConnection.onicecandidate = e => {
-            if (e.candidate) {
-                signalingConnection.send(JSON.stringify({ type:'candidate', candidate:e.candidate }));
+
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                signalingConnection.send(JSON.stringify({
+                    type: 'candidate',
+                    candidate: event.candidate
+                }));
             }
         };
-        peerConnection.ontrack = e => { video1.srcObject = e.streams[0]; };
+
+        peerConnection.ontrack = event => {
+            video1.srcObject = event.streams[0];
+        };
     }
 </script>
 </body>
-</html>
+</html>|
