@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Workout Screen - Push UP</title>
     <style>
         :root {
@@ -23,7 +23,6 @@
         header { text-align:center; margin-bottom:30px }
         h1 { font-size:2.5rem; color:var(--primary-color); margin-bottom:10px }
         p  { color:var(--light-color); }
-
         .video-container {
             display:flex; flex-wrap:wrap; gap:20px; margin-bottom:30px;
         }
@@ -44,13 +43,14 @@
             background:var(--secondary-color);
         }
         .video-content { padding:15px }
-        video { width:100%; height:auto; border-radius:var(--radius) }
-
+        video {
+            width:100%; height:auto;
+            border-radius:var(--radius)
+        }
         .text-output {
             background:rgba(255,255,255,0.05);
             border-radius:var(--radius);
             padding:20px;
-            margin-bottom:30px;
             min-height:200px;
             box-shadow:0 4px 6px rgba(0,0,0,0.1);
         }
@@ -65,12 +65,10 @@
             border-radius:var(--radius);
             min-height:120px;
             font-family:monospace;
-            font-size:1.1rem;
             white-space:pre-wrap;
             overflow-y:auto;
             text-align:left;
         }
-
         @media(max-width:768px){
             .video-container { flex-direction:column }
             .video-box { min-width:100% }
@@ -107,7 +105,6 @@
 </div>
 
 <script>
-    // 시그널링 & 포즈 WS URL
     const signalingUrl = 'ws://3.39.137.250:8080/signaling';
     const poseUrl      = 'ws://3.39.137.250:8080/pose';
 
@@ -118,68 +115,63 @@
     const config = {
         iceServers:[
             { urls:'stun:stun.l.google.com:19302' },
-            { urls:'turn:3.39.137.250:3478', username:'webrtcuser', credential:'secret-bucket123' }
+            { urls:'turn:3.39.137.250:3478',
+                username:'webrtcuser',
+                credential:'secret-bucket123'
+            }
         ]
     };
 
-    // ICE 후보를 setRemoteDescription 전후로 안전하게 처리하기 위한 큐
+    // ICE 후보를 remoteDescription 설정 전후에 모두 버퍼링
     let pendingCandidates = [];
 
     const video1    = document.getElementById('video1');
     const resultDiv = document.getElementById('result');
 
+    // 1) 시그널링 서버 연결되면 PeerConnection만 생성
     signalingConnection.onopen = () => {
         console.log('[✅ 시그널링] 연결됨');
         createPeerConnection();
-
-        // Offer 생성·전송
-        peerConnection.createOffer()
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .then(() => signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
     };
 
+    // 2) 시그널링 메시지 처리 (offer, answer, candidate)
     signalingConnection.onmessage = async msg => {
         const data = JSON.parse(msg.data);
         console.log('[📩 시그널링]', data);
 
         if (data.type === 'offer') {
-            // 상대 Offer 수신
+            // 서버가 보낸 offer에 answer
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-
-            // 미리 저장해 둔 ICE 후보 모두 추가
+            // 버퍼링된 ICE 후보들 추가
             pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(console.warn));
             pendingCandidates = [];
 
-            // Answer 생성·전송
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
             signalingConnection.send(JSON.stringify(peerConnection.localDescription));
 
         } else if (data.type === 'answer') {
-            // 상대 Answer 수신
+            // (만약 이 클라이언트가 caller였다면) 서버의 answer 처리
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-
-            // 대기 중이던 ICE 추가
             pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(console.warn));
             pendingCandidates = [];
 
         } else if (data.type === 'candidate') {
-            // ICE Candidate 수신
+            // ICE candidate 수신
             const cand = new RTCIceCandidate({
                 candidate: data.candidate,
                 sdpMid: data.sdpMid,
                 sdpMLineIndex: data.sdpMLineIndex
             });
             if (peerConnection.remoteDescription) {
-                // 이미 remoteDescription 이 설정된 후라면 즉시 추가
                 peerConnection.addIceCandidate(cand).catch(console.warn);
             } else {
-                // 준비 전이라면 큐에 저장
                 pendingCandidates.push(cand);
             }
         }
     };
 
+    // 3) PeerConnection 생성 및 이벤트 핸들러
     function createPeerConnection(){
         peerConnection = new RTCPeerConnection(config);
 
@@ -187,10 +179,10 @@
             if (e.candidate) {
                 console.log('[📤 ICE]', e.candidate);
                 signalingConnection.send(JSON.stringify({
-                    type:           'candidate',
-                    candidate:      e.candidate.candidate,
-                    sdpMid:         e.candidate.sdpMid,
-                    sdpMLineIndex:  e.candidate.sdpMLineIndex
+                    type:'candidate',
+                    candidate:e.candidate.candidate,
+                    sdpMid:e.candidate.sdpMid,
+                    sdpMLineIndex:e.candidate.sdpMLineIndex
                 }));
             }
         };
@@ -200,12 +192,13 @@
             video1.srcObject = e.streams[0];
         };
 
-        // 로컬 트랙 추가 필요 시 활성화
+        // 로컬 트랙이 필요하면 여기에 추가
         // navigator.mediaDevices.getUserMedia({video:true,audio:true})
-        //   .then(s => { s.getTracks().forEach(t=>peerConnection.addTrack(t,s)); });
+        //   .then(s => s.getTracks().forEach(t=>peerConnection.addTrack(t,s)));
     }
 
-    poseConnection.onopen    = () => console.log('[✅ 포즈 WS]');
+    // 포즈 WebSocket
+    poseConnection.onopen    = ()=> console.log('[✅ 포즈 WS]');
     poseConnection.onmessage = evt => {
         const data = JSON.parse(evt.data);
         resultDiv.innerText = data.prediction_result || '';
