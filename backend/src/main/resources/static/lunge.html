@@ -51,24 +51,24 @@
         }
 
         /* ─── My Video 부분만 수정 ─── */
+        /* ─── My Video 컨테이너를 16:9로 고정 ─── */
         .video-box:first-child .video-content {
-            padding:0;
-            /* 컨테이너를 9:16 세로 비율로 고정 */
-            aspect-ratio: 9 / 16;
+            padding: 0;
+            aspect-ratio: 16 / 9;        /* ← 9/16 → 16/9 로 변경 */
             position: relative;
             overflow: hidden;
+            flex: 1;
         }
+        /* 회전된 비디오가 짤리지 않고 전체 표시되도록 */
         .video-box:first-child .video-content video {
-            position:absolute;
-            top:50%; left:50%;
-            /* 중앙 이동 후 90° 회전 */
+            position: absolute;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(90deg);
             transform-origin: center center;
-            /* 회전된 영상이 컨테이너를 완전히 채우도록 */
-            width:auto;
-            height:100%;
-            object-fit: cover;
-            border-radius:var(--radius);
+            width: auto;                 /* ← width:100% → auto */
+            height: 100%;                /* 세로에 딱 맞추고 */
+            object-fit: contain;         /* 전체가 보이도록 */
+            border-radius: 0 0 var(--radius) var(--radius);
         }
         /* ──────────────────────────── */
 
