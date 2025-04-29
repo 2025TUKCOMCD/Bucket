@@ -107,7 +107,6 @@
 </div>
 
 <script>
-    // 시그널링 & 포즈 WS URL
     const signalingUrl = 'ws://3.39.137.250:8080/signaling';
     const poseUrl      = 'ws://3.39.137.250:8080/pose';
 
@@ -117,11 +116,13 @@
     let peerConnection;
     const config = {
         iceServers:[
-            { urls:'stun:stun.l.google.com:19302' },
-            { urls:'turn:3.39.137.250:3478', username:'webrtcuser', credential:'secret-bucket123' }
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls:'turn:3.39.137.250:3478',
+                username:'webrtcuser',
+                credential:'secret-bucket123' }
         ]
     };
-    // ICE 후보 큐 (remoteDescription 전 설정된 경우 대응)
+    // remoteDescription 전 수집된 candidate 저장
     let pendingCandidates = [];
 
     const video1 = document.getElementById('video1');
@@ -129,47 +130,38 @@
 
     signalingConnection.onopen = () => {
         console.log('[✅ 시그널링] 연결됨');
-
-        // 1) PeerConnection 생성
+        // PeerConnection 생성만 하고, Offer 는 서버에서 받기를 기다립니다.
         createPeerConnection();
-
-        // 2) 클라이언트 주도 Offer 생성 → 서버로 전송
-        peerConnection.createOffer()
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .then(() => {
-                signalingConnection.send(JSON.stringify(peerConnection.localDescription));
-                console.log('[📤 OFFER 전송]', peerConnection.localDescription);
-            })
-            .catch(e => console.error('Offer 생성 실패:', e));
     };
 
-    signalingConnection.onmessage = async msg => {
-        const data = JSON.parse(msg.data);
+    signalingConnection.onmessage = async event => {
+        const data = JSON.parse(event.data);
         console.log('[📩 시그널링]', data);
 
         if (data.type === 'offer') {
-            // server-initiated offer (만약 있을 경우)
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(console.warn));
+            // 1) 서버 Offer 수신 → Remote Description 설정
+            await peerConnection.setRemoteDescription(
+                new RTCSessionDescription(data)
+            );
+            // 2) Offer 전에 온 후보들 추가
+            pendingCandidates.forEach(c=>peerConnection.addIceCandidate(c).catch(console.warn));
             pendingCandidates = [];
 
+            // 3) Answer 생성 → Local Description → 서버 전송
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
-            signalingConnection.send(JSON.stringify(peerConnection.localDescription));
+            signalingConnection.send(
+                JSON.stringify(peerConnection.localDescription)
+            );
             console.log('[📤 ANSWER 전송]', peerConnection.localDescription);
 
-        } else if (data.type === 'answer') {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            pendingCandidates.forEach(c => peerConnection.addIceCandidate(c).catch(console.warn));
-            pendingCandidates = [];
-
         } else if (data.type === 'candidate') {
+            // ICE 후보 처리
             const cand = new RTCIceCandidate({
                 candidate: data.candidate,
                 sdpMid: data.sdpMid,
                 sdpMLineIndex: data.sdpMLineIndex
             });
-            // remoteDescription 설정 전후 모두 수용
             if (peerConnection.remoteDescription) {
                 peerConnection.addIceCandidate(cand).catch(console.warn);
             } else {
@@ -183,13 +175,13 @@
 
         peerConnection.onicecandidate = e => {
             if (e.candidate) {
-                console.log('[📤 ICE Candidate]', e.candidate);
                 signalingConnection.send(JSON.stringify({
                     type: 'candidate',
                     candidate: e.candidate.candidate,
                     sdpMid: e.candidate.sdpMid,
                     sdpMLineIndex: e.candidate.sdpMLineIndex
                 }));
+                console.log('[📤 ICE Candidate]', e.candidate);
             }
         };
 
@@ -198,17 +190,18 @@
             video1.srcObject = e.streams[0];
         };
 
-        // 로컬 미디어 추가가 필요하다면 주석 해제
-        // navigator.mediaDevices.getUserMedia({video:true,audio:true})
-        //   .then(s => s.getTracks().forEach(t => peerConnection.addTrack(t, s)));
+        // 로컬 스트림을 서버로 보내야 한다면 주석 해제
+        // navigator.mediaDevices.getUserMedia({ video:true, audio:true })
+        //   .then(stream => stream.getTracks().forEach(t => peerConnection.addTrack(t, stream)));
     }
 
-    poseConnection.onopen = () => console.log('[✅ 포즈 WS 연결됨]');
+    // 포즈 WS 연결 및 메시지 수신
+    poseConnection.onopen    = () => console.log('[✅ 포즈 WS 연결됨]');
     poseConnection.onmessage = evt => {
-        const data = JSON.parse(evt.data);
-        resultDiv.innerText = data.prediction_result || '';
+        const d = JSON.parse(evt.data);
+        resultDiv.innerText = d.prediction_result || '';
     };
-    poseConnection.onerror = e => console.error('[POSE WS ERR]', e);
+    poseConnection.onerror   = e => console.error('[POSE WS ERR]', e);
 </script>
 </body>
 </html>
