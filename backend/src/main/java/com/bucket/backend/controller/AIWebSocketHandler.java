@@ -112,7 +112,17 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
                     // 필터링할 포인트만 선택
                     for (String key : selectedPoints) {
                         if (pts.containsKey(key)) {
-                            filteredPts.put(key, pts.get(key));
+                            Map<String, Object> point = (Map<String, Object>) pts.get(key);
+                            Map<String, Object> filteredPoint = new LinkedHashMap<>();
+
+                            filteredPoint.put("x", point.get("x"));
+                            filteredPoint.put("y", point.get("y"));
+
+                            if("lunge".equals(getSelectedExercise()) && point.containsKey("z")) {
+                                filteredPoint.put("z", point.get("z"));
+                            }
+
+                            filteredPts.put(key, filteredPoint);
                         }
                     }
 
