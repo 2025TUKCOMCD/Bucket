@@ -26,7 +26,7 @@ public class S3Controller {
         // 서비스에서 S3 업로드 실행
         log.info("파일 저장 컨트롤러 실행");
         try{
-            String filekey = s3Service.uploadFile(file);
+            String filekey = s3Service.uploadFile(file,"videos");
             return ResponseEntity.ok(filekey+" 파일을 업로드 했습니다.");
         } catch (Exception e) {
             log.error(" 파일 업로드 실패", e);

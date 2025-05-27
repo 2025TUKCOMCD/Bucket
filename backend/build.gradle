@@ -36,8 +36,7 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'jakarta.websocket:jakarta.websocket-api:2.0.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	implementation platform('software.amazon.awssdk:bom:2.20.143')
-	implementation 'software.amazon.awssdk:s3'
+	implementation 'software.amazon.awssdk:s3:2.31.50'
 }
 
 tasks.named('test') {

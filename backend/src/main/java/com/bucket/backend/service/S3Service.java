@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.UUID;
 
+
 @Service
 @RequiredArgsConstructor
 public class S3Service {
@@ -21,9 +22,12 @@ public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file) throws IOException {
+    private final AmazonS3 amazonS3;
+
+    public String uploadFile(MultipartFile file, String folderName) throws IOException {
         // UUID + 파일 명으로 고유 키 생성
-        String key = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String key = folderName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        ObjectMetadata metadata = new ObjectMetadata();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
