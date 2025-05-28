@@ -1,6 +1,7 @@
 package com.bucket.backend.service;
 
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,8 @@ public class S3Service {
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
-    private final AmazonS3 amazonS3;
+    @Value("${aws.s3.region}")
+    private String region;
 
     public String uploadFile(MultipartFile file, String folderName) throws IOException {
         // UUID + 파일 명으로 고유 키 생성
@@ -37,7 +39,7 @@ public class S3Service {
         // 실제 파일 업로드
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-        return key; // 또는 전체 URL 반환하고 싶으면 https://{bucket}.s3.{region}.amazonaws.com/{key}
+        return "https://"+ bucketName + ".s3." + region+".amazonaws.com/" + key;
     }
 
 

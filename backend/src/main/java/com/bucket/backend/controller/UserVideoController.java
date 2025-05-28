@@ -7,6 +7,7 @@ import com.bucket.backend.service.UserVideoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,8 +24,8 @@ public class UserVideoController {
 
     // 운동 영상 업로드
     @PostMapping
-    public ResponseEntity<?> uploadVideo(@RequestBody UserVideo video) {
-        UserVideo saveVideo = userVideoService.saveUserVideo(video);
+    public ResponseEntity<?> uploadVideo(@RequestBody UserVideo video, @RequestBody MultipartFile file) {
+        UserVideo saveVideo = userVideoService.saveUserVideo(video, file);
         return ResponseEntity.ok().body(
                 new ApiResponse(saveVideo.getVid(), "운동 기록 데이터가 성공적으로 업로드 되었습니다.")
         );
