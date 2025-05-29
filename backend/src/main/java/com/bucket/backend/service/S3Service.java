@@ -30,9 +30,16 @@ public class S3Service {
         // UUID + 파일 명으로 고유 키 생성
         String key = folderName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
+        // 업로드할 파일의 MIME 타입 자동 감지
+        String contentType = file.getContentType();
+        if (contentType == null || contentType.isBlank()) {
+            contentType = "application/octet-stream"; // 기본값 (모르는 타입일 때)
+        }
+
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)   //s3 내 저장될 파일명
+                .contentType(contentType)
                 .build();
 
         // 실제 파일 업로드
