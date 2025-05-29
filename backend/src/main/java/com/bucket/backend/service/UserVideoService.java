@@ -6,7 +6,6 @@ import com.bucket.backend.repository.UserRepository;
 import com.bucket.backend.repository.UserVideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,22 +16,19 @@ public class UserVideoService {
 
     private final UserVideoRepository userVideoRepository;
     private final UserRepository userRepository;
-    private final S3Service s3Service;
 
     //운동 영상 저장
-    public UserVideo saveUserVideo(UserVideo userVideo, MultipartFile file) {
+    public UserVideo saveUserVideo(UserVideo userVideo, String videoUrl) {
         // 유저 확인 예외 처리
         if(!userRepository.existsById(userVideo.getUser().getUid())){
             throw new IllegalArgumentException("유저를 찾지 못했습니다.");
         }
         
         try{
-            //S3에 영상 업로드
-            String key = s3Service.uploadFile(file,"exercise-videos");
-            
+
             //업로드된 S3 URL 엔티티에 수정
-            userVideo.setVideoUrl(key);
-            
+            userVideo.setVideoUrl(videoUrl);
+
             //DB에 저장
             return userVideoRepository.save(userVideo);
         } catch (Exception e) {

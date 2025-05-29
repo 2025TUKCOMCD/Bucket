@@ -29,7 +29,6 @@ public class S3Service {
     public String uploadFile(MultipartFile file, String folderName) throws IOException {
         // UUID + 파일 명으로 고유 키 생성
         String key = folderName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
-        ObjectMetadata metadata = new ObjectMetadata();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
