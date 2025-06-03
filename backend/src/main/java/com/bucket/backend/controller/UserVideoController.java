@@ -30,6 +30,10 @@ public class UserVideoController {
         this.userRepository = userRepository;
     }
 
+    @PostMapping
+    public ResponseEntity<UserVideo> createUserVideo(@RequestBody UserVideo userVideo) {}
+
+
     // 운동 영상 업로드
     @PostMapping
     public ResponseEntity<?> uploadVideo(@RequestParam("file") MultipartFile file,
