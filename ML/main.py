@@ -331,67 +331,81 @@ class LungePostureAnalyzer:
             skeleton_sequence = np.squeeze(skeleton_sequence, axis=2)  # (batch, frames, joints, features)
             
         if predicted_label == 1:  # 잘못된 자세로 분류된 경우
-            faults["무릎"] = self.check_knee_angle(skeleton_sequence)
-            # faults["몸 방향"] = self.check_alignment(skeleton_sequence)
-            faults["상체"] = self.check_torso_tilt(skeleton_sequence)
+            faults["발방향"] = self.check_feet_direction(skeleton_sequence)
+            faults["무릎정렬"] = self.check_knees_alignment(skeleton_sequence)
+            faults["어깨수평"] = self.check_shoulders_level(skeleton_sequence)
+            faults["비틀림"] = self.check_body_twist(skeleton_sequence)
         
         return {k: v for k, v in faults.items() if v is not None}, result
 
-    def calculate_joint_angle(self, skeleton_sequence, joint_indices):
-        a, b, c = [skeleton_sequence[:, :, idx, :] for idx in joint_indices]
-        ba = a - b
-        bc = c - b
-        cosine_angle = np.sum(ba * bc, axis=-1) / (np.linalg.norm(ba, axis=-1) * np.linalg.norm(bc, axis=-1) + 1e-6)
-        angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
+    def calculate_vector_angle(self, v1, v2):
+        dot = np.sum(v1 * v2, axis=-1)
+        norm = (np.linalg.norm(v1, axis=-1) * np.linalg.norm(v2, axis=-1)) + 1e-6
+        cos_angle = np.clip(dot / norm, -1.0, 1.0)
+        angle = np.arccos(cos_angle)
         return np.degrees(angle)
-    
-    def check_knee_angle(self, skeleton_sequence, is_left=True):
-        hip = self.joint_indices['left_hip'] if is_left else self.joint_indices['right_hip']
-        knee = self.joint_indices['left_knee'] if is_left else self.joint_indices['right_knee']
-        ankle = self.joint_indices['left_ankle'] if is_left else self.joint_indices['right_ankle']
-    
-        angles = self.calculate_joint_angle(skeleton_sequence, [hip, knee, ankle])
-    
-        # 스무딩 적용 (옵션)
-        smoothed_angles = savgol_filter(angles, window_length=5, polyorder=2, axis=-1)
-    
-        avg_angle = np.mean(smoothed_angles)
-    
-        print("각 프레임 무릎 각도:", np.round(smoothed_angles, 2))
-        print("무릎 평균 각도:", avg_angle)
-    
-        if not np.sum(smoothed_angles < 160) > 2 or np.sum(smoothed_angles < 100) > 2:
-            return f"무릎 각도가 부정확합니다. 90°에 가깝게 유지하세요."
+        
+    def check_feet_direction(self, skeleton_sequence):
+        la = self.joint_indices['left_ankle'] 
+        ra = self.joint_indices['right_ankle'] 
+        ls = self.joint_indices["left_shoulder"]
+        rs = self.joint_indices["right_shoulder"]
+        left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
+        right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
+        avg_diff = np.mean(np.array([left_diff, right_diff]))
+        if avg_diff > 0.2:
+            return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         return None
 
-    def check_torso_tilt(self, skeleton_sequence):
-        left_shoulder = self.joint_indices["left_shoulder"]
-        left_hip = self.joint_indices["left_hip"]
+    def check_knees_alignment(self, skeleton_sequence, is_left=True):
+        knee_idx = self.joint_indices['left_knee'] if is_left else self.joint_indices['right_knee']
+        ankle_idx = self.joint_indices['left_ankle'] if is_left else self.joint_indices['right_ankle']
+        
+        # 무릎 → 발목 벡터 계산
+        knee_to_ankle_vec = skeleton_sequence[:, :, ankle_idx, :] - skeleton_sequence[:, :, knee_idx, :]
+        
+        # y축 기준으로 벡터의 기울기 (수직 벡터: [0, 1, 0])
+        vertical_vec = np.array([0, 1, 0])  # y축 기준 수직 벡터
+        angle = self.calculate_vector_angle(knee_to_ankle_vec, vertical_vec)  # 무릎-발목 벡터와 y축 벡터 사이의 각도 계산
+        # 각도가 일정 threshold 이상이면, 무릎이 과도하게 기울어진 것으로 판단
+        if np.mean(angle) > 45:  # 30도 이상 기울어졌으면 비정상
+            return "무릎이 과도하게 기울어졌습니다. 무릎을 수직으로 유지하세요."
+        
+        return None
+        
+    def check_shoulders_level(self, skeleton_sequence):
+        ls = self.joint_indices["left_shoulder"]
+        rs = self.joint_indices["right_shoulder"]
+        shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
+        if np.mean(shoulder_diff) > 0.1:  # 기준값은 데이터 스케일에 따라 조정
+            return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
+        return None
+
+    def check_body_twist(self, skeleton_sequence):
+        ls = self.joint_indices["left_shoulder"]
+        rs = self.joint_indices["right_shoulder"]
+        lh = self.joint_indices["left_hip"]
+        rh = self.joint_indices["right_hip"]
     
-        vec = skeleton_sequence[:, :, left_hip, :] - skeleton_sequence[:, :, left_shoulder, :]  # (batch, frame, 2)
-        norm_vec = vec / (np.linalg.norm(vec, axis=-1, keepdims=True) + 1e-6)  # 방향 벡터로 정규화
+        shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]
+        hip_vec = skeleton_sequence[:, :, rh, :] - skeleton_sequence[:, :, lh, :]
     
-        vertical = np.array([0, 1])  # 완전한 수직선
-    
-        dot = np.sum(norm_vec * vertical, axis=-1)  # 내적
-        angle = np.arccos(np.clip(dot, -1.0, 1.0)) * (180 / np.pi)  # 수직선과의 각도
-    
-        if np.sum(angle > 10) > 2:
-            return "상체가 과도하게 숙이거나 젖혀졌습니다. 몸을 세워주세요."
+        # 회전량 측정: cross product의 y 성분
+        twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
+        if np.mean(np.abs(twist)) > 0.045:
+            return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
 
     def provide_feedback(self, skeleton_sequence):
         """감지된 자세 오류를 기반으로 실시간 피드백을 제공합니다."""
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
-        print(result)
-        
         if not faults:
-            return "측정 불가"
+            return f"{result}<br>측정 불가"
         
-        feedback = "다음 사항을 수정하세요: "
+        feedback = f"{result}<br>다음 사항을 수정하세요: "
         for key, message in faults.items():
-            feedback += f"\n- {message}"
+            feedback += f"<br>- {message}"
         
         return feedback
 
