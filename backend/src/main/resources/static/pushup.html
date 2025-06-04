@@ -346,6 +346,33 @@
             signalingConnection.send(JSON.stringify(peerConnection.localDescription));
         });
     }
+
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    function startRecording(stream) {
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+        mediaRecorder.ondataavailable = function (e) {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = function () {
+            const blob = new Blob(recordedChunks, { type: "video/webm" });
+            uploadToServer(blob);
+        };
+
+        mediaRecorder.start();
+        console.log("녹화 시작");
+    }
+
+    function stopRecording() {
+        mediaRecorder.stop();
+        console.log("녹화 종료");
+    }
+
+    
 </script>
 </body>
 </html>
