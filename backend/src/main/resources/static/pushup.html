@@ -349,10 +349,40 @@
         });
     }
 
+    let currentUid = null;
+
+    window.onload = () => {
+        // 페이지 로드시 uid를 서버에서 fetch
+        fetch("/api/user/me", {
+            method: "GET",
+            credentials: "include"  // 세션 쿠키 포함 필수
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("로그인이 필요합니다");
+                return res.text();
+            })
+            .then(uid => {
+                currentUid = parseInt(uid);
+                console.log("현재 로그인된 사용자 uid:", currentUid);
+            })
+            .catch(err => {
+                alert("로그인이 필요합니다.");
+                window.location.href = "/login.html";
+            });
+    };
+
+
     let mediaRecorder;
     let recordedChunks = [];
 
-    function startRecording(stream) {
+    function startRecording() {
+        const stream = video1.srcObject;
+
+        if (!stream) {
+            console.warn("스트림이 아직 연결되지 않았습니다.");
+            return;
+        }
+
         recordedChunks = [];
         mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
 
@@ -369,10 +399,36 @@
         console.log("녹화 시작");
     }
 
+
     function stopRecording() {
-        mediaRecorder.stop();
-        console.log("녹화 종료");
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+            console.log("녹화 종료");
+        } else {
+            console.warn("녹화가 아직 시작되지 않았습니다.");
+        }
     }
+
+    function uploadToServer(blob) {
+        const formData = new FormData();
+        if(!currentUid){
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        formData.append("file", blob);
+        formData.append("uid", currentUid);
+
+        fetch("/api/user-videos/upload", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.text())
+            .then(url => {
+                alert("업로드 완료: " + url); //S3에 업로드
+            })
+            .catch(err => console.error("업로드 실패", err));
+    }
+
 
 
 </script>

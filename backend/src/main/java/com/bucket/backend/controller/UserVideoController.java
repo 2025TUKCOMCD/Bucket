@@ -1,5 +1,6 @@
 package com.bucket.backend.controller;
 
+import com.bucket.backend.repository.UserVideoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.bucket.backend.model.UserVideo;
@@ -12,9 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user-videos")
@@ -24,37 +25,65 @@ public class UserVideoController {
     private final UserVideoService userVideoService;
     private final S3Service s3Service;
     private final UserRepository userRepository;
-    public UserVideoController(UserVideoService userVideoService, S3Service s3Service, UserRepository userRepository) {
+    private final UserVideoRepository userVideoRepository;
+
+    public UserVideoController(UserVideoService userVideoService, S3Service s3Service, UserRepository userRepository, UserVideoRepository userVideoRepository) {
         this.userVideoService = userVideoService;
         this.s3Service = s3Service;
         this.userRepository = userRepository;
+        this.userVideoRepository = userVideoRepository;
     }
 
     //@PostMapping
     //public ResponseEntity<UserVideo> createUserVideo(@RequestBody UserVideo userVideo) {}
 
 
+    @PostMapping
+    public ResponseEntity<?> createUserVideo(@RequestParam MultipartFile file,
+                                                     @RequestParam("uid") int uid) {
+        log.info("녹화 영상 업로드 uid={}",uid);
+        try{
+            String url = s3Service.uploadFile(file,"videos");
+
+            //redis에 저장하느 코드
+
+            return ResponseEntity.ok(url);
+        } catch (Exception e) {
+            log.error("S3 업로드 실패",e);
+            return ResponseEntity.status(500).body("업로드 실패 : "+ e.getMessage());
+        }
+
+    }
+
     // 운동 영상 업로드
     @PostMapping
-    public ResponseEntity<?> uploadVideo(@RequestParam("file") MultipartFile file,
-                                         @RequestParam("uid") int uid,
-                                         @RequestParam("sportname") String sportname,
-                                         @RequestParam("feedback") String feedback,
-                                         @RequestParam("recordDate")String recordDate) {
+    public ResponseEntity<?> saveRecord(@RequestParam("uid") int uid,
+                                        @RequestParam("sportname") String sportname,
+                                        @RequestParam("feedback") String feedback,
+                                        @RequestParam("recordDate")String recordDate,
+                                        @RequestParam("videoUrl") String videoUrl) {
         // 서비스에서 S3 업로드 실행
-        log.info("파일 저장 컨트롤러 실행");
+        log.info("운동 기록 저장 요청: uid={}, sport={}, date={}", uid, sportname, recordDate);
         try{
-            Optional<users> user = userRepository.findById(uid);
-            UserVideo userVideo = new UserVideo();
-            userVideo.setUser(user.get());
-            userVideo.setSportname(sportname);
-            userVideo.setFeedback(feedback);
-            userVideo.setRecordDate(LocalDate.parse(recordDate));
+            Optional<users> userOpt = userRepository.findById(uid);
+            //유저 존재 확인
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("유효하지 않은 사용자입니다.");
+            }
 
-            String url = s3Service.uploadFile(file,"videos");
-            UserVideo saveVideo = userVideoService.saveUserVideo(userVideo, url);
+            UserVideo video = new UserVideo();
+            video.setUser(userOpt.get());
+            video.setSportname(sportname);
+            video.setFeedback(feedback);
+            video.setRecordDate(LocalDate.parse(recordDate));
+            video.setVideoUrl(videoUrl);
 
-            return ResponseEntity.ok(url+" 파일을 업로드 했습니다.");
+            userVideoRepository.save(video);
+
+            //String url = s3Service.uploadFile(file,"videos");
+            //UserVideo saveVideo = userVideoService.saveUserVideo(userVideo, url);
+
+            return ResponseEntity.ok("운동 기록이 저장되었습니다.");
         } catch (Exception e) {
             log.error(" 파일 업로드 실패", e);
             return ResponseEntity.status(400).build();
@@ -117,4 +146,6 @@ public class UserVideoController {
         // 3) 반환
         return ResponseEntity.ok(result);
     }
+
+
 }
