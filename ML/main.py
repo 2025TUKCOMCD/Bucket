@@ -449,7 +449,7 @@ model = STGCN_sport2(num_joints_2, num_features_2, adjacency_matrix_norm_2, num_
 dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
 model(dummy_input)
 
-model.load_weights("stgcn_model_sport2_1.weights.h5")
+model.load_weights("stgcn_model_sport2_C1.weights.h5")
 
 @app.websocket("/ws/connect")
 async def receive_json(websocket: WebSocket):
@@ -494,17 +494,6 @@ async def receive_json(websocket: WebSocket):
                     for _ in range(step_size):
                         if frame_buffer:
                             frame_buffer.popleft()  # 가장 오래된 프레임 제거
-                # skeleton_sequence = load_json_skeleton(file_path)
-                # feedback = analyzer.provide_feedback(skeleton_sequence)
-
-                # response = {
-                #     #"user_id": user_id,
-                #     "status": "success",
-                #     "message": "AI process OK ",
-                #     "prediction_result" : feedback
-                # }
-                # await websocket.send_text(json.dumps(response))
-                # print(f"spring로 응답 전송:{response}")
 
             except Exception as e:
                 print(f"Websocket Error: {e}")
