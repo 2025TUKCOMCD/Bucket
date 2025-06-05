@@ -1,6 +1,8 @@
 package com.bucket.backend.controller;
 
 import com.bucket.backend.repository.UserVideoRepository;
+import com.bucket.backend.service.RedisService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.bucket.backend.model.UserVideo;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/user-videos")
 public class UserVideoController {
 
@@ -26,13 +29,7 @@ public class UserVideoController {
     private final S3Service s3Service;
     private final UserRepository userRepository;
     private final UserVideoRepository userVideoRepository;
-
-    public UserVideoController(UserVideoService userVideoService, S3Service s3Service, UserRepository userRepository, UserVideoRepository userVideoRepository) {
-        this.userVideoService = userVideoService;
-        this.s3Service = s3Service;
-        this.userRepository = userRepository;
-        this.userVideoRepository = userVideoRepository;
-    }
+    private final RedisService redisService;
 
     //@PostMapping
     //public ResponseEntity<UserVideo> createUserVideo(@RequestBody UserVideo userVideo) {}
@@ -48,9 +45,9 @@ public class UserVideoController {
             //redis에 저장하느 코드
             // Redis에 10분간 URL 저장 → 모바일이 GET 요청으로 가져가게
             //redisTemplate.opsForValue().set("temp:video:uid:" + uid, url, Duration.ofMinutes(10));
+            redisService.saveUrl(uid, url);
 
-
-            return ResponseEntity.ok(url);
+            return ResponseEntity.ok("S3 url 저장 완료 : "+url);
         } catch (Exception e) {
             log.error("S3 업로드 실패",e);
             return ResponseEntity.status(500).body("업로드 실패 : "+ e.getMessage());
