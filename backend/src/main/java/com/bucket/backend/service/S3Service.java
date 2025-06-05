@@ -45,6 +45,7 @@ public class S3Service {
         // 실제 파일 업로드
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
+        //S3의 URL
         return "https://"+ bucketName + ".s3." + region+".amazonaws.com/" + key;
     }
 

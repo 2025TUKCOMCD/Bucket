@@ -38,14 +38,17 @@ public class UserVideoController {
     //public ResponseEntity<UserVideo> createUserVideo(@RequestBody UserVideo userVideo) {}
 
 
-    @PostMapping
-    public ResponseEntity<?> createUserVideo(@RequestParam MultipartFile file,
+    @PostMapping("/upload")
+    public ResponseEntity<?> UploadVideo(@RequestParam MultipartFile file,
                                                      @RequestParam("uid") int uid) {
         log.info("녹화 영상 업로드 uid={}",uid);
         try{
             String url = s3Service.uploadFile(file,"videos");
 
             //redis에 저장하느 코드
+            // Redis에 10분간 URL 저장 → 모바일이 GET 요청으로 가져가게
+            //redisTemplate.opsForValue().set("temp:video:uid:" + uid, url, Duration.ofMinutes(10));
+
 
             return ResponseEntity.ok(url);
         } catch (Exception e) {
