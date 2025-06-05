@@ -359,10 +359,10 @@
         })
             .then(res => {
                 if (!res.ok) throw new Error("로그인이 필요합니다");
-                return res.text();
+                return res.json();
             })
-            .then(uid => {
-                currentUid = parseInt(uid);
+            .then(user => {
+                currentUid = user.uid;
                 console.log("현재 로그인된 사용자 uid:", currentUid);
             })
             .catch(err => {
