@@ -44,7 +44,6 @@ public class UserVideoController {
 
             //redis에 저장하느 코드
             // Redis에 10분간 URL 저장 → 모바일이 GET 요청으로 가져가게
-            //redisTemplate.opsForValue().set("temp:video:uid:" + uid, url, Duration.ofMinutes(10));
             redisService.saveUrl(uid, url);
 
             return ResponseEntity.ok("S3 url 저장 완료 : "+url);

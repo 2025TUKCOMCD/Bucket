@@ -351,8 +351,9 @@
 
     let currentUid = null;
 
+    // 페이지 로드시 uid를 서버에서 fetch
     window.onload = () => {
-        // 페이지 로드시 uid를 서버에서 fetch
+
         fetch("/api/user/me", {
             method: "GET",
             credentials: "include"  // 세션 쿠키 포함 필수
@@ -376,27 +377,35 @@
     let recordedChunks = [];
 
     function startRecording() {
-        const stream = video1.srcObject;
+        //const stream = video1.srcObject;
 
-        if (!stream) {
-            console.warn("스트림이 아직 연결되지 않았습니다.");
-            return;
-        }
+        navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
 
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+                recordedChunks = [];
 
-        mediaRecorder.ondataavailable = function (e) {
-            if (e.data.size > 0) recordedChunks.push(e.data);
-        };
+                mediaRecorder.ondataavailable = e=>{
+                    if(e.data.size >0) recordedChunks.push(e.data);
+                };
 
-        mediaRecorder.onstop = function () {
-            const blob = new Blob(recordedChunks, { type: "video/webm" });
-            uploadToServer(blob);
-        };
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, {type: 'video/webm'});
+                    uploadToServer(blob);
+                }
 
-        mediaRecorder.start();
-        console.log("녹화 시작");
+                mediaRecorder.start();
+                console.log("화면 녹화 시작");
+            })
+            .catch(err => {
+                console.error("화면 녹화 오류: " ,err);
+            })
+
+        // if (!stream) {
+        //     console.warn("스트림이 아직 연결되지 않았습니다.");
+        //     return;
+        // }
+
     }
 
 
@@ -424,7 +433,7 @@
         })
             .then(res => res.text())
             .then(url => {
-                alert("업로드 완료: " + url); //S3에 업로드
+                console.log("업로드 완료: " + url); //S3에 업로드
             })
             .catch(err => console.error("업로드 실패", err));
     }
