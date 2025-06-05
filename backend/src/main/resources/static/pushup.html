@@ -181,6 +181,10 @@
     <button onclick="startRecording()">녹화 시작</button>
     <button onclick="stopRecording()">녹화 종료</button>
 </div>
+<div id="recording-timer" style="font-size: 20px; color: #00ff99; margin-top: 10px;">
+    녹화 시간: 00:00
+</div>
+
 
 <script>
     // ✅ 시그널링 서버 URL
@@ -375,6 +379,8 @@
 
     let mediaRecorder;
     let recordedChunks = [];
+    let timerInterval;
+    let recordingStartTime = null;
 
     function startRecording() {
         //const stream = video1.srcObject;
@@ -392,20 +398,21 @@
                 mediaRecorder.onstop = () => {
                     const blob = new Blob(recordedChunks, {type: 'video/webm'});
                     uploadToServer(blob);
+                    stopTimer();
                 }
 
                 mediaRecorder.start();
                 console.log("화면 녹화 시작");
+
+                startTimer();
             })
             .catch(err => {
                 console.error("화면 녹화 오류: " ,err);
             })
-
         // if (!stream) {
         //     console.warn("스트림이 아직 연결되지 않았습니다.");
         //     return;
         // }
-
     }
 
 
@@ -413,6 +420,7 @@
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
             mediaRecorder.stop();
             console.log("녹화 종료");
+
         } else {
             console.warn("녹화가 아직 시작되지 않았습니다.");
         }
@@ -438,6 +446,24 @@
             .catch(err => console.error("업로드 실패", err));
     }
 
+    // 타이머 시작
+    function startTimer() {
+        const timerEl = document.getElementById("recording-timer");
+        recordingStartTime = Date.now();
+
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+            const seconds = String(elapsed % 60).padStart(2, "0");
+            timerEl.textContent = `녹화 시간: ${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    // ⏹ 타이머 종료
+    function stopTimer() {
+        clearInterval(timerInterval);
+        document.getElementById("recording-timer").textContent = "녹화 시간: 00:00";
+    }
 
 
 </script>
