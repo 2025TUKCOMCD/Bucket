@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -31,8 +30,14 @@ public class UserVideoController {
     private final UserVideoRepository userVideoRepository;
     private final RedisService redisService;
 
-    //@PostMapping
-    //public ResponseEntity<UserVideo> createUserVideo(@RequestBody UserVideo userVideo) {}
+    @GetMapping("/url/{uid}")
+    public ResponseEntity<String> getURL(@PathVariable int uid) {
+        String url = redisService.getUrl(uid);
+
+        redisService.deleteUrl(uid);
+
+        return ResponseEntity.ok(url);
+    }
 
 
     @PostMapping("/upload")
