@@ -80,6 +80,28 @@
             border-radius: var(--border-radius);
         }
 
+        /* ─── My Video 부분만 수정 ─── */
+        /* ─── My Video 컨테이너를 16:9로 고정 ─── */
+        .video-box:first-child .video-content {
+            padding: 0;
+            aspect-ratio: 16 / 9;        /* ← 9/16 → 16/9 로 변경 */
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
+        /* 회전된 비디오가 짤리지 않고 전체 표시되도록 */
+        .video-box:first-child .video-content video {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            transform-origin: center center;
+            width: auto;                 /* ← width:100% → auto */
+            height: 100%;                /* 세로에 딱 맞추고 */
+            object-fit: contain;         /* 전체가 보이도록 */
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+        /* ──────────────────────────── */
+
         .text-output {
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
@@ -126,7 +148,7 @@
 <div class="container">
     <header>
         <h1>Push UP</h1>
-        <p>본인 운동영상와 참고영상을 비교해보세요!</p>
+        <p>본인 운동영상과 참고영상을 비교해보세요!</p>
     </header>
 
     <div class="video-container">
@@ -156,7 +178,13 @@
 
         </div>
     </div>
+    <button onclick="startRecording()">녹화 시작</button>
+    <button onclick="stopRecording()">녹화 종료</button>
 </div>
+<div id="recording-timer" style="font-size: 20px; color: #00ff99; margin-top: 10px;">
+    녹화 시간: 00:00
+</div>
+
 
 <script>
     // ✅ 시그널링 서버 URL
@@ -324,6 +352,120 @@
             signalingConnection.send(JSON.stringify(peerConnection.localDescription));
         });
     }
+
+    let currentUid = null;
+
+    // 페이지 로드시 uid를 서버에서 fetch
+    window.onload = () => {
+
+        fetch("/api/user/me", {
+            method: "GET",
+            credentials: "include"  // 세션 쿠키 포함 필수
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("로그인이 필요합니다");
+                return res.json();
+            })
+            .then(user => {
+                currentUid = user.uid;
+                console.log("현재 로그인된 사용자 uid:", currentUid);
+            })
+            .catch(err => {
+                alert("로그인이 필요합니다.");
+                window.location.href = "/login.html";
+            });
+    };
+
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let timerInterval;
+    let recordingStartTime = null;
+
+    function startRecording() {
+        //const stream = video1.srcObject;
+
+        navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
+
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = e=>{
+                    if(e.data.size >0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, {type: 'video/webm'});
+                    uploadToServer(blob);
+                    stopTimer();
+                }
+
+                mediaRecorder.start();
+                console.log("화면 녹화 시작");
+
+                startTimer();
+            })
+            .catch(err => {
+                console.error("화면 녹화 오류: " ,err);
+            })
+        // if (!stream) {
+        //     console.warn("스트림이 아직 연결되지 않았습니다.");
+        //     return;
+        // }
+    }
+
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+            console.log("녹화 종료");
+
+        } else {
+            console.warn("녹화가 아직 시작되지 않았습니다.");
+        }
+    }
+
+    function uploadToServer(blob) {
+        const formData = new FormData();
+        if(!currentUid){
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        formData.append("file", blob);
+        formData.append("uid", currentUid);
+
+        fetch("/api/user-videos/upload", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.text())
+            .then(url => {
+                console.log("업로드 완료: " + url); //S3에 업로드
+            })
+            .catch(err => console.error("업로드 실패", err));
+    }
+
+    // 타이머 시작
+    function startTimer() {
+        const timerEl = document.getElementById("recording-timer");
+        recordingStartTime = Date.now();
+
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+            const seconds = String(elapsed % 60).padStart(2, "0");
+            timerEl.textContent = `녹화 시간: ${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    // ⏹ 타이머 종료
+    function stopTimer() {
+        clearInterval(timerInterval);
+        document.getElementById("recording-timer").textContent = "녹화 시간: 00:00";
+    }
+
+
 </script>
 </body>
 </html>

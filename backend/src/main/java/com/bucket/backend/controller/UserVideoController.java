@@ -1,33 +1,97 @@
 package com.bucket.backend.controller;
 
-import com.bucket.backend.controller.ApiResponse;
+import com.bucket.backend.repository.UserVideoRepository;
+import com.bucket.backend.service.RedisService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.bucket.backend.model.UserVideo;
 import com.bucket.backend.model.users;
+import com.bucket.backend.repository.UserRepository;
+import com.bucket.backend.service.S3Service;
 import com.bucket.backend.service.UserVideoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/user-videos")
 public class UserVideoController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserVideoController.class);
     private final UserVideoService userVideoService;
+    private final S3Service s3Service;
+    private final UserRepository userRepository;
+    private final UserVideoRepository userVideoRepository;
+    private final RedisService redisService;
 
-    public UserVideoController(UserVideoService userVideoService) {
-        this.userVideoService = userVideoService;
+    @GetMapping("/url/{uid}")
+    public ResponseEntity<String> getURL(@PathVariable int uid) {
+        String url = redisService.getUrl(uid);
+
+        redisService.deleteUrl(uid);
+
+        return ResponseEntity.ok(url);
+    }
+
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> UploadVideo(@RequestParam MultipartFile file,
+                                                     @RequestParam("uid") int uid) {
+        log.info("녹화 영상 업로드 uid={}",uid);
+        try{
+            String url = s3Service.uploadFile(file,"videos");
+
+            //redis에 저장하느 코드
+            // Redis에 10분간 URL 저장 → 모바일이 GET 요청으로 가져가게
+            redisService.saveUrl(uid, url);
+
+            return ResponseEntity.ok("S3 url 저장 완료 : "+url);
+        } catch (Exception e) {
+            log.error("S3 업로드 실패",e);
+            return ResponseEntity.status(500).body("업로드 실패 : "+ e.getMessage());
+        }
+
     }
 
     // 운동 영상 업로드
     @PostMapping
-    public ResponseEntity<?> uploadVideo(@RequestBody UserVideo video) {
-        UserVideo saveVideo = userVideoService.saveUserVideo(video);
-        return ResponseEntity.ok().body(
-                new ApiResponse(saveVideo.getVid(), "운동 기록 데이터가 성공적으로 업로드 되었습니다.")
-        );
+    public ResponseEntity<?> saveRecord(@RequestParam("uid") int uid,
+                                        @RequestParam("sportname") String sportname,
+                                        @RequestParam("feedback") String feedback,
+                                        @RequestParam("recordDate")String recordDate,
+                                        @RequestParam("videoUrl") String videoUrl) {
+        // 서비스에서 S3 업로드 실행
+        log.info("운동 기록 저장 요청: uid={}, sport={}, date={}", uid, sportname, recordDate);
+        try{
+            Optional<users> userOpt = userRepository.findById(uid);
+            //유저 존재 확인
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("유효하지 않은 사용자입니다.");
+            }
+
+            UserVideo video = new UserVideo();
+            video.setUser(userOpt.get());
+            video.setSportname(sportname);
+            video.setFeedback(feedback);
+            video.setRecordDate(LocalDate.parse(recordDate));
+            video.setVideoUrl(videoUrl);
+
+            userVideoRepository.save(video);
+
+            //String url = s3Service.uploadFile(file,"videos");
+            //UserVideo saveVideo = userVideoService.saveUserVideo(userVideo, url);
+
+            return ResponseEntity.ok("운동 기록이 저장되었습니다.");
+        } catch (Exception e) {
+            log.error(" 파일 업로드 실패", e);
+            return ResponseEntity.status(400).build();
+        }
     }
 
     // 사용자별 운동 기록 조회 (관리자용 등)
@@ -86,4 +150,6 @@ public class UserVideoController {
         // 3) 반환
         return ResponseEntity.ok(result);
     }
+
+
 }
