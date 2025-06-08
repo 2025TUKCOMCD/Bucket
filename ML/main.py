@@ -440,7 +440,7 @@ model.load_weights("stgcn_model5.weights.h5")
 analyzer = PushUpPostureAnalyzer(model)
 
 num_joints_2 = 14 
-num_features_2 = 2 
+num_features_2 = 3 
 num_classes_2 = 2  
 adjacency_matrix_norm_2 = np.load("adjacency_matrix_sport2.npy")
 
