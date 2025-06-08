@@ -329,6 +329,17 @@ def process_json_data_2(json_data):
     
     return frame_data
 
+def normalize_sequence(skeleton_sequence):
+    # 중심 이동
+    mid_hip = (skeleton_sequence[:, :, keypoints_2.index("Point_23"), :] + 
+            skeleton_sequence[:, :, keypoints_2.index("Point_24"), :]) / 2
+    skeleton_sequence = skeleton_sequence - mid_hip[:, :, np.newaxis, :]  # 중심 정렬
+
+    # z-score 정규화
+    mean = np.mean(skeleton_sequence)
+    std = np.std(skeleton_sequence) + 1e-6
+    skeleton_sequence = (skeleton_sequence - mean) / std
+    return skeleton_sequence
 
 class LungePostureAnalyzer:
     def __init__(self, model):
@@ -563,6 +574,7 @@ async def receive_json(websocket: WebSocket):
                     # 피드백 생성
                     if len(frame_buffer) == 16:
                         skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
+                        skeleton_sequence = normalize_sequence(skeleton_sequence)
                         feedback = analyzer.provide_feedback(skeleton_sequence)
                     
                         response = {
