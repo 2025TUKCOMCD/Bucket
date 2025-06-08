@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@android:color/white">
+
+    <!-- 로고 텍스트 -->
+    <TextView
+        android:id="@+id/tvWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HOMEPT"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnStartMain"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+
+    <!-- “촬영” 버튼 (btn_main_feature) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartMain"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_main_feature"
+        android:layout_marginTop="16dp"
+        app:icon="@drawable/ic_camera_alt_24dp"
+        app:iconTint="?attr/colorPrimary"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/tvWelcome"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- “내 기록 보기” 버튼 (btn_view_history) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnViewHistory"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_view_history"
+        android:layout_marginTop="12dp"
+        app:icon="@drawable/ic_history_24dp"
+        app:iconTint="?attr/colorPrimary"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/btnStartMain"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- “운동 기록 업로드” 버튼 (btn_upload_record) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUploadRecord"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_upload"
+        android:layout_marginTop="24dp"
+        app:icon="@drawable/ic_upload_24dp"
+        app:iconTint="@android:color/white"
+        app:iconGravity="textStart"
+        app:layout_constraintTop_toBottomOf="@id/btnViewHistory"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

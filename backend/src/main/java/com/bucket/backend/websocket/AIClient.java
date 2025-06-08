@@ -67,12 +67,17 @@ public class AIClient{
     }
 
     public void sendToAI(String json)throws IOException{
-        if(aiSession != null && aiSession.isOpen()){
-            aiSession.getBasicRemote().sendText(json);
-            log.info("AI 모델로 데이터 전송: {}",json);
-        }else{
-            log.error("AI Socket 세션 닫혀 있음.");
+        try{
+            if(aiSession != null && aiSession.isOpen()){
+                aiSession.getBasicRemote().sendText(json);
+                log.info("AI 모델로 데이터 전송: {}",json);
+            }else{
+                log.error("AI Socket 세션 닫혀 있음.");
+            }
+        } catch (IOException e){
+            log.error("메시지 전송 중 오류 발생", e);
         }
+
     }
     // 클라이언트 세션을 등록하는 메서드
     public static void registerClientSession(String clientId, WebSocketSession session) {

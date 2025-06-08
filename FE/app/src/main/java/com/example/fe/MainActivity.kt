@@ -1,10 +1,13 @@
+// MainActivity.kt
 package com.example.fe
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,18 +25,17 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
-    // ───────────────────────────────────────────
-    // 권한 관련 상수
-    // ───────────────────────────────────────────
-    private val PERMISSIONS_REQUEST_CODE = 1
+    companion object {
+        private const val PERMISSIONS_REQUEST_CODE = 1
+    }
+
+    // ─── 권한 ─────────────────────────────────────────────────
     private val requiredPermissions = arrayOf(
-        Manifest.permission.CAMERA,
-        Manifest.permission.RECORD_AUDIO
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.RECORD_AUDIO
     )
 
-    // ───────────────────────────────────────────
-    // WebRTC 관련 필드
-    // ───────────────────────────────────────────
+    // ─── WebRTC ───────────────────────────────────────────────
     private lateinit var peerConnectionFactory: PeerConnectionFactory
     private lateinit var videoCapturer: VideoCapturer
     private lateinit var videoSource: VideoSource
@@ -41,88 +43,72 @@ class MainActivity : AppCompatActivity() {
     private lateinit var surfaceViewRenderer: SurfaceViewRenderer
     private lateinit var eglBase: EglBase
     private var peerConnection: PeerConnection? = null
-
-    // 시그널링 서버 & 포즈 서버와 통신할 클라이언트
-    private var signalingClient: SignalingClient? = null
-
-    // 전면 or 후면 카메라 사용 여부
     private var isFrontCameraUsed: Boolean = false
 
-    // ───────────────────────────────────────────
-    // MediaPipe Pose 관련
-    // ───────────────────────────────────────────
+    // ─── 시그널링 & 포즈 WebSocket ────────────────────────────
+    private var signalingClient: SignalingClient? = null
+
+    // ─── MediaPipe Pose ───────────────────────────────────────
     private lateinit var poseLandmarker: PoseLandmarker
     private lateinit var poseOverlayView: PoseOverlayView
 
-    // ───────────────────────────────────────────
-    // ★ 추가: 포즈 전송 간격 설정
-    // ───────────────────────────────────────────
-    private val POSE_SEND_INTERVAL_MS = 333L  // 333ms 간격 (1초에 최대 3번)
-    private var lastPoseSendTime = 0L         // 마지막 포즈 전송 시각
+    // Pose 전송 간격 제어
+    private val POSE_SEND_INTERVAL_MS = 333L
+    private var lastPoseSendTime = 0L
 
-    // ───────────────────────────────────────────
-    // onCreate
-    // ───────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // View 연결
         surfaceViewRenderer = findViewById(R.id.surface_view)
-        poseOverlayView = findViewById(R.id.poseOverlay)
+        poseOverlayView      = findViewById(R.id.poseOverlay)
 
-        // 권한 체크
         if (!hasPermissions()) {
-            ActivityCompat.requestPermissions(this, requiredPermissions, PERMISSIONS_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                this, requiredPermissions, PERMISSIONS_REQUEST_CODE
+            )
         } else {
             initAll()
         }
-    }
 
-    // 권한 체크
-    private fun hasPermissions(): Boolean {
-        return requiredPermissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        // 촬영 종료 버튼: 운동 선택 → 업로드로 이동
+        findViewById<Button>(R.id.btnFinish).setOnClickListener {
+            showExerciseSelectionDialog()
         }
     }
 
-    // 권한 요청 결과
+    private fun hasPermissions(): Boolean =
+        requiredPermissions.all {
+            ContextCompat.checkSelfPermission(this, it) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSIONS_REQUEST_CODE && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+        if (requestCode == PERMISSIONS_REQUEST_CODE &&
+            grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }
+        ) {
             initAll()
         }
     }
 
-    // 초기화 전체 프로세스
     private fun initAll() {
-        // 1) EGL 초기화
         eglBase = EglBase.create()
-
-        // 2) WebRTC 초기화
         initializeWebRTC()
-
-        // 3) MediaPipe PoseLandmarker 초기화
         initializePoseLandmarker()
     }
 
-    // ───────────────────────────────────────────
-    // WebRTC 초기화
-    // ───────────────────────────────────────────
+    // ─── WebRTC 초기화 ─────────────────────────────────────────
     private fun initializeWebRTC() {
-        val initOptions = PeerConnectionFactory.InitializationOptions
-            .builder(this)
-            .createInitializationOptions()
+        val initOptions =
+            PeerConnectionFactory.InitializationOptions.builder(this)
+                .createInitializationOptions()
         PeerConnectionFactory.initialize(initOptions)
 
         val encoderFactory = DefaultVideoEncoderFactory(
-            eglBase.eglBaseContext,
-            /* enableIntelVp8Encoder= */true,
-            /* enableH264HighProfile= */true
+            eglBase.eglBaseContext, true, true
         )
         val decoderFactory = DefaultVideoDecoderFactory(eglBase.eglBaseContext)
 
@@ -131,31 +117,30 @@ class MainActivity : AppCompatActivity() {
             .setVideoDecoderFactory(decoderFactory)
             .createPeerConnectionFactory()
 
-        // SurfaceViewRenderer 초기화
         surfaceViewRenderer.init(eglBase.eglBaseContext, null)
-        // 전면 카메라 시 미러링
         surfaceViewRenderer.setMirror(true)
 
-        // 카메라 시작
         startCameraCapture()
-
-        // PeerConnection 생성
         createPeerConnection()
 
-        // 시그널링 & 포즈 WebSocket 연결
         signalingClient = SignalingClient(
-            signalingListener = { signalingMsg -> onSignalingMessageReceived(signalingMsg) },
-            poseListener = { poseMsg -> onPoseMessageReceived(poseMsg) }
+            signalingListener = { msg -> onSignalingMessageReceived(msg) },
+            poseListener      = { msg -> onPoseMessageReceived(msg) }
         )
-
-        // 기본 Offer 생성 (필요 시)
         createOffer()
     }
 
-    // 카메라 캡쳐 시작
     private fun startCameraCapture() {
         val enumerator = Camera2Enumerator(this)
-        videoCapturer = createCameraCapturer(enumerator) ?: return
+        val frontName = enumerator.deviceNames.firstOrNull { enumerator.isFrontFacing(it) }
+        videoCapturer = if (frontName != null) {
+            isFrontCameraUsed = true
+            enumerator.createCapturer(frontName, null)
+        } else {
+            val backName = enumerator.deviceNames.first { !enumerator.isFrontFacing(it) }
+            isFrontCameraUsed = false
+            enumerator.createCapturer(backName, null)
+        }
 
         videoSource = peerConnectionFactory.createVideoSource(false)
         val surfaceTextureHelper =
@@ -165,76 +150,42 @@ class MainActivity : AppCompatActivity() {
 
         localVideoTrack = peerConnectionFactory.createVideoTrack("VIDEO_TRACK_ID", videoSource)
         localVideoTrack.addSink(surfaceViewRenderer)
-
-        // 프레임 콜백 -> MediaPipe Pose 분석
-        localVideoTrack.addSink(object : VideoSink {
-            override fun onFrame(frame: VideoFrame) {
-                processWebRTCFrameWithPose(frame)
-            }
-        })
+        localVideoTrack.addSink { frame -> processWebRTCFrameWithPose(frame) }
     }
 
-    // 카메라 Capturer 생성 (전면 우선)
-    private fun createCameraCapturer(enumerator: CameraEnumerator): VideoCapturer? {
-        val deviceNames = enumerator.deviceNames
-        // 전면
-        for (deviceName in deviceNames) {
-            if (enumerator.isFrontFacing(deviceName)) {
-                val capturer = enumerator.createCapturer(deviceName, null)
-                if (capturer != null) {
-                    isFrontCameraUsed = true
-                    return capturer
-                }
-            }
-        }
-        // 후면
-        for (deviceName in deviceNames) {
-            if (!enumerator.isFrontFacing(deviceName)) {
-                val capturer = enumerator.createCapturer(deviceName, null)
-                if (capturer != null) {
-                    isFrontCameraUsed = false
-                    return capturer
-                }
-            }
-        }
-        return null
-    }
-
-    // PeerConnection 생성
     private fun createPeerConnection() {
         val iceServers = listOf(
             PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
         )
-        val rtcConfig = PeerConnection.RTCConfiguration(iceServers)
-
-        peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig,
+        peerConnection = peerConnectionFactory.createPeerConnection(
+            PeerConnection.RTCConfiguration(iceServers),
             object : PeerConnection.Observer {
                 override fun onIceCandidate(candidate: IceCandidate) {
                     sendIceCandidate(candidate)
                 }
-
-                override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) {}
                 override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {}
+                override fun onSignalingChange(state: PeerConnection.SignalingState) {}
                 override fun onIceConnectionReceivingChange(receiving: Boolean) {}
-                override fun onSignalingChange(newState: PeerConnection.SignalingState) {}
-                override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState) {}
+                override fun onIceGatheringChange(state: PeerConnection.IceGatheringState) {}
                 override fun onAddStream(stream: MediaStream) {}
                 override fun onRemoveStream(stream: MediaStream) {}
                 override fun onDataChannel(dc: DataChannel) {}
                 override fun onRenegotiationNeeded() {}
+                override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>?) {}
             }
-        )
-
-        // 로컬 트랙 추가
-        val streamId = "LOCAL_STREAM_ID"
-        peerConnection?.addTrack(localVideoTrack, listOf(streamId))
+        )?.apply {
+            addTrack(localVideoTrack, listOf("LOCAL_STREAM_ID"))
+        }
     }
 
-    // Offer 생성
     private fun createOffer() {
-        val sdpConstraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
+        val constraints = MediaConstraints().apply {
+            mandatory.add(
+                MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true")
+            )
+            mandatory.add(
+                MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true")
+            )
         }
         peerConnection?.createOffer(object : SdpObserver {
             override fun onCreateSuccess(sdp: SessionDescription) {
@@ -242,83 +193,64 @@ class MainActivity : AppCompatActivity() {
                     override fun onSetSuccess() {
                         sendSdpOfferToServer(sdp)
                     }
-                    override fun onSetFailure(error: String?) {
-                        Log.e("WebRTC", "Set local description failed: $error")
-                    }
-                    override fun onCreateSuccess(sdp: SessionDescription?) {}
-                    override fun onCreateFailure(error: String?) {}
+                    override fun onSetFailure(error: String?) = Unit
+                    override fun onCreateSuccess(sdp: SessionDescription?) = Unit
+                    override fun onCreateFailure(error: String?) = Unit
                 }, sdp)
             }
-            override fun onCreateFailure(error: String?) {
-                Log.e("WebRTC", "Create offer failed: $error")
-            }
-            override fun onSetSuccess() {}
-            override fun onSetFailure(error: String?) {}
-        }, sdpConstraints)
+            override fun onSetSuccess() = Unit
+            override fun onCreateFailure(error: String?) = Unit
+            override fun onSetFailure(error: String?) = Unit
+        }, constraints)
     }
 
-    // Offer 전송
     private fun sendSdpOfferToServer(sdp: SessionDescription) {
-        val message = JSONObject().apply {
+        val msg = JSONObject().apply {
             put("type", "offer")
             put("sdp", sdp.description)
         }
-        signalingClient?.sendSignalingMessage(message.toString())
+        signalingClient?.sendSignalingMessage(msg.toString())
     }
 
-    // ICE Candidate 전송
     private fun sendIceCandidate(candidate: IceCandidate) {
-        val message = JSONObject().apply {
+        val msg = JSONObject().apply {
             put("type", "candidate")
             put("candidate", candidate.sdp)
-            put("sdpMLineIndex", candidate.sdpMLineIndex)
             put("sdpMid", candidate.sdpMid)
+            put("sdpMLineIndex", candidate.sdpMLineIndex)
         }
-        signalingClient?.sendSignalingMessage(message.toString())
+        signalingClient?.sendSignalingMessage(msg.toString())
     }
 
-    // 시그널링 서버 메시지 처리
     private fun onSignalingMessageReceived(message: String) {
         val json = JSONObject(message)
         when (json.getString("type")) {
             "answer" -> {
-                val sdp = json.getString("sdp")
-                val sessionDescription = SessionDescription(SessionDescription.Type.ANSWER, sdp)
+                val sdp  = json.getString("sdp")
+                val desc = SessionDescription(SessionDescription.Type.ANSWER, sdp)
                 peerConnection?.setRemoteDescription(object : SdpObserver {
-                    override fun onSetSuccess() {
-                        Log.d("WebRTC", "Remote description set successfully")
-                    }
-                    override fun onSetFailure(error: String?) {
-                        Log.e("WebRTC", "Set remote description failed: $error")
-                    }
-                    override fun onCreateSuccess(sdp: SessionDescription?) {}
-                    override fun onCreateFailure(error: String?) {}
-                }, sessionDescription)
+                    override fun onSetSuccess() {}
+                    override fun onSetFailure(error: String?) {}
+                    override fun onCreateSuccess(sdp: SessionDescription?) = Unit
+                    override fun onCreateFailure(error: String?) = Unit
+                }, desc)
             }
             "candidate" -> {
-                val candidate = json.getString("candidate")
-                val sdpMid = json.getString("sdpMid")
-                val sdpMLineIndex = json.getInt("sdpMLineIndex")
-                val iceCandidate = IceCandidate(sdpMid, sdpMLineIndex, candidate)
-                peerConnection?.addIceCandidate(iceCandidate)
+                val candidate = IceCandidate(
+                    json.getString("sdpMid"),
+                    json.getInt("sdpMLineIndex"),
+                    json.getString("candidate")
+                )
+                peerConnection?.addIceCandidate(candidate)
             }
         }
     }
 
-    // 포즈 서버 메시지 처리
-    private fun onPoseMessageReceived(message: String) {
-        Log.d("PoseLandmarker", "받은 포즈 메시지: $message")
-        // 필요 시 추가 로직
-    }
-
-    // ───────────────────────────────────────────
-    // MediaPipe PoseLandmarker 초기화
-    // ───────────────────────────────────────────
+    // ─── PoseLandmarker 초기화 ───────────────────────────────────
     private fun initializePoseLandmarker() {
         val baseOptions = BaseOptions.builder()
             .setModelAssetPath("pose_landmarker_lite.task")
             .build()
-
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(baseOptions)
             .setMinPoseDetectionConfidence(0.8f)
@@ -331,126 +263,78 @@ class MainActivity : AppCompatActivity() {
                 Log.e("PoseLandmarker", "Error: $error")
             }
             .build()
-
         poseLandmarker = PoseLandmarker.createFromOptions(this, options)
     }
 
-    // WebRTC 프레임 -> MediaPipe Pose 처리
     private fun processWebRTCFrameWithPose(frame: VideoFrame) {
-        val i420Buffer = frame.buffer.toI420() ?: return
-        val width = i420Buffer.width
-        val height = i420Buffer.height
-        val rotation = frame.rotation
-
-        if (width <= 0 || height <= 0) {
-            i420Buffer.release()
-            return
-        }
-
-        // 1) YUV->ARGB
-        val argbBytes = ByteArray(width * height * 4)
+        val i420   = frame.buffer.toI420() ?: return
+        val width  = i420.width
+        val height = i420.height
+        val yuv    = ByteArray(width * height * 4)
         convertI420ToARGB(
-            i420Buffer.dataY, i420Buffer.dataU, i420Buffer.dataV,
-            i420Buffer.strideY, i420Buffer.strideU, i420Buffer.strideV,
-            argbBytes, width, height
+            i420.dataY, i420.dataU, i420.dataV,
+            i420.strideY, i420.strideU, i420.strideV,
+            yuv, width, height
         )
-        i420Buffer.release()
-
-        // 2) 회전
-        val rotated = rotateARGB(argbBytes, width, height, rotation)
-        var finalArgb = rotated.data
-        var finalW = rotated.width
-        var finalH = rotated.height
-
-        // 3) 전면 카메라면 좌우 반전
-        if (isFrontCameraUsed) {
-            finalArgb = mirrorARGB(finalArgb, finalW, finalH)
-        }
-
-        // 4) Bitmap 생성
-        val bitmap = Bitmap.createBitmap(finalW, finalH, Bitmap.Config.ARGB_8888)
-        bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(finalArgb))
-
-        // 5) MediaPipe Pose 분석
-        val mpImage = BitmapImageBuilder(bitmap).build()
+        i420.release()
+        val rotated = rotateARGB(yuv, width, height, frame.rotation)
+        var data = rotated.data
+        var w    = rotated.width
+        var h    = rotated.height
+        if (isFrontCameraUsed) data = mirrorARGB(data, w, h)
+        val bmp   = android.graphics.Bitmap.createBitmap(
+            w, h, android.graphics.Bitmap.Config.ARGB_8888
+        )
+        bmp.copyPixelsFromBuffer(ByteBuffer.wrap(data))
+        val mpImage = BitmapImageBuilder(bmp).build()
         poseLandmarker.detectAsync(mpImage, System.currentTimeMillis())
     }
 
-    // PoseLandmarker 결과 처리
+    // ─── PoseLandmarker 결과 처리 ───────────────────────────────────
     private fun handlePoseResult(result: PoseLandmarkerResult) {
-        val multiPoseLandmarks = result.landmarks()
-        Log.d("PoseLandmarker", "landmarks size: ${multiPoseLandmarks.size}")
-        if (multiPoseLandmarks.isNotEmpty()) {
-            val firstPose = multiPoseLandmarks[0]
-            val avgVisibility = firstPose.map { it.visibility().orElse(0f) }.average()
-            Log.d("PoseLandmarker", "avgVisibility: $avgVisibility")
+        // 1) 검출된 첫 번째 포즈 가져오기
+        val landmarks = result.landmarks().firstOrNull() ?: return
 
-            // 가령 평균 가시도가 0.3 미만이면 무시
-            if (avgVisibility < 0.3) return
+        // 2) 평균 가시도 계산 후 일정 이하면 무시
+        val avgVis = landmarks.map { it.visibility().orElse(0f) }.average()
+        if (avgVis < 0.3) return
 
-            // 오버레이 업데이트
-            runOnUiThread {
-                poseOverlayView.updateLandmarks(firstPose)
-            }
+        // 3) 화면에 오버레이
+        runOnUiThread {
+            poseOverlayView.updateLandmarks(landmarks)
+        }
 
-            // 현재 시각
-            val currentTime = System.currentTimeMillis()
-            // 전송 간격 검사
-            if (currentTime - lastPoseSendTime >= POSE_SEND_INTERVAL_MS) {
-                lastPoseSendTime = currentTime
+        // 4) 전송 주기 체크
+        val now = System.currentTimeMillis()
+        if (now - lastPoseSendTime >= POSE_SEND_INTERVAL_MS) {
+            lastPoseSendTime = now
 
-                // Pose -> JSON
-                val jsonData = convertPoseDataToJson(firstPose)
-                Log.d("PoseLandmarker", "Sending pose data: $jsonData")
-
-                // 포즈 메시지 전송
-                signalingClient?.sendPoseMessage(jsonData)
-            } else {
-                Log.d("PoseLandmarker", "Skip sending (too frequent)")
-            }
+            // 5) JSON 변환 후 서버로 전송
+            val jsonData = convertPoseDataToJson(landmarks)
+            signalingClient?.sendPoseMessage(jsonData)
         }
     }
 
-    // Pose 데이터를 JSON으로 변환
+    // ─── Pose 데이터를 JSON으로 변환 ───────────────────────────────────
     private fun convertPoseDataToJson(landmarks: List<NormalizedLandmark>): String {
         val pts = mutableMapOf<String, Map<String, Float>>()
-        landmarks.forEachIndexed { index, lm ->
-            pts["Point_$index"] = mapOf(
+        landmarks.forEachIndexed { i, lm ->
+            pts["Point_$i"] = mapOf(
                 "x" to lm.x(),
-                "y" to lm.y()
+                "y" to lm.y(),
+                "z" to lm.z()    // Z 좌표까지 전송하고 싶으면 포함
             )
         }
-        val view3 = mapOf("pts" to pts)
-        val frames = listOf(mapOf("view3" to view3))
-        val jsonMap = mapOf(
+        val view = mapOf("pts" to pts)
+        val frames = listOf(mapOf("view" to view))
+        val wrapper = mapOf(
             "type" to "pose",
             "frames" to frames
         )
-        return JSONObject(jsonMap).toString()
+        return JSONObject(wrapper).toString()
     }
 
-    // ───────────────────────────────────────────
-    // 액티비티 종료 처리
-    // ───────────────────────────────────────────
-    override fun onDestroy() {
-        super.onDestroy()
-        try {
-            videoCapturer.stopCapture()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        surfaceViewRenderer.release()
-        peerConnectionFactory.dispose()
-        eglBase.release()
-
-        if (::poseLandmarker.isInitialized) {
-            poseLandmarker.close()
-        }
-    }
-
-    // ───────────────────────────────────────────
-    // I420 -> ARGB 변환
-    // ───────────────────────────────────────────
+    // ─── I420 → ARGB 변환 ───────────────────────────────────────
     private fun convertI420ToARGB(
         dataY: ByteBuffer,
         dataU: ByteBuffer,
@@ -463,120 +347,142 @@ class MainActivity : AppCompatActivity() {
         height: Int
     ) {
         for (row in 0 until height) {
-            val yOffset = row * strideY
+            val yOffset  = row * strideY
             val uvOffset = (row / 2) * strideU
             for (col in 0 until width) {
-                val y = (dataY.get(yOffset + col).toInt() and 0xFF)
+                val y = dataY.get(yOffset + col).toInt() and 0xFF
                 val u = (dataU.get(uvOffset + col / 2).toInt() and 0xFF) - 128
                 val v = (dataV.get(uvOffset + col / 2).toInt() and 0xFF) - 128
-
                 val r = (y + 1.370705f * v).roundToInt().coerceIn(0, 255)
                 val g = (y - 0.698001f * v - 0.337633f * u).roundToInt().coerceIn(0, 255)
                 val b = (y + 1.732446f * u).roundToInt().coerceIn(0, 255)
-
-                val alpha = 255
-                val pixelIndex = (row * width + col) * 4
-                outArgb[pixelIndex + 0] = alpha.toByte()
-                outArgb[pixelIndex + 1] = r.toByte()
-                outArgb[pixelIndex + 2] = g.toByte()
-                outArgb[pixelIndex + 3] = b.toByte()
+                val idx = (row * width + col) * 4
+                outArgb[idx + 0] = 255.toByte()
+                outArgb[idx + 1] = r.toByte()
+                outArgb[idx + 2] = g.toByte()
+                outArgb[idx + 3] = b.toByte()
             }
         }
     }
 
-    data class RotatedData(val data: ByteArray, val width: Int, val height: Int)
+    private data class RotatedData(val data: ByteArray, val width: Int, val height: Int)
 
-    private fun rotateARGB(source: ByteArray, width: Int, height: Int, rotation: Int): RotatedData {
+    private fun rotateARGB(
+        source: ByteArray,
+        width: Int,
+        height: Int,
+        rotation: Int
+    ): RotatedData {
         return when (rotation) {
             0 -> RotatedData(source, width, height)
             90 -> {
-                val rotated = rotateARGB90(source, width, height)
-                RotatedData(rotated, height, width)
+                val dst = rotateARGB90(source, width, height)
+                RotatedData(dst, height, width)
             }
-            180 -> {
-                val rotated = rotateARGB180(source, width, height)
-                RotatedData(rotated, width, height)
-            }
+            180 -> RotatedData(rotateARGB180(source, width, height), width, height)
             270 -> {
-                val rotated = rotateARGB270(source, width, height)
-                RotatedData(rotated, height, width)
+                val dst = rotateARGB270(source, width, height)
+                RotatedData(dst, height, width)
             }
             else -> RotatedData(source, width, height)
         }
     }
 
     private fun rotateARGB90(source: ByteArray, width: Int, height: Int): ByteArray {
-        // 90도 회전 -> newWidth=height, newHeight=width
-        val dest = ByteArray(width * height * 4)
-        for (row in 0 until height) {
-            for (col in 0 until width) {
-                val srcIndex = (row * width + col) * 4
-                // (col, height-1-row)
-                val dstCol = height - 1 - row
-                val dstRow = col
-                val dstIndex = (dstRow * height + dstCol) * 4
-                dest[dstIndex]     = source[srcIndex]
-                dest[dstIndex + 1] = source[srcIndex + 1]
-                dest[dstIndex + 2] = source[srcIndex + 2]
-                dest[dstIndex + 3] = source[srcIndex + 3]
+        val dest = ByteArray(source.size)
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val si = (r * width + c) * 4
+                val dr = c
+                val dc = height - 1 - r
+                val di = (dr * height + dc) * 4
+                for (i in 0..3) dest[di + i] = source[si + i]
             }
         }
         return dest
     }
 
     private fun rotateARGB180(source: ByteArray, width: Int, height: Int): ByteArray {
-        // 180도 회전
-        val dest = ByteArray(width * height * 4)
-        for (row in 0 until height) {
-            for (col in 0 until width) {
-                val srcIndex = (row * width + col) * 4
-                // (width-1-col, height-1-row)
-                val dstRow = height - 1 - row
-                val dstCol = width - 1 - col
-                val dstIndex = (dstRow * width + dstCol) * 4
-
-                dest[dstIndex]     = source[srcIndex]
-                dest[dstIndex + 1] = source[srcIndex + 1]
-                dest[dstIndex + 2] = source[srcIndex + 2]
-                dest[dstIndex + 3] = source[srcIndex + 3]
+        val dest = ByteArray(source.size)
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val si = (r * width + c) * 4
+                val dr = height - 1 - r
+                val dc = width - 1 - c
+                val di = (dr * width + dc) * 4
+                for (i in 0..3) dest[di + i] = source[si + i]
             }
         }
         return dest
     }
 
     private fun rotateARGB270(source: ByteArray, width: Int, height: Int): ByteArray {
-        // 270도 -> 90도 3번
-        val dest = ByteArray(width * height * 4)
-        for (row in 0 until height) {
-            for (col in 0 until width) {
-                val srcIndex = (row * width + col) * 4
-                // (width-1-col, row)
-                val dstCol = row
-                val dstRow = width - 1 - col
-                val dstIndex = (dstRow * height + dstCol) * 4
-                dest[dstIndex]     = source[srcIndex]
-                dest[dstIndex + 1] = source[srcIndex + 1]
-                dest[dstIndex + 2] = source[srcIndex + 2]
-                dest[dstIndex + 3] = source[srcIndex + 3]
+        val dest = ByteArray(source.size)
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val si = (r * width + c) * 4
+                val dr = width - 1 - c
+                val dc = r
+                val di = (dr * height + dc) * 4
+                for (i in 0..3) dest[di + i] = source[si + i]
             }
         }
         return dest
     }
 
-    // 좌우 반전 (Front 카메라용)
     private fun mirrorARGB(source: ByteArray, width: Int, height: Int): ByteArray {
         val dest = ByteArray(source.size)
-        for (row in 0 until height) {
-            for (col in 0 until width) {
-                val srcIndex = (row * width + col) * 4
-                val dstCol = width - 1 - col
-                val dstIndex = (row * width + dstCol) * 4
-                dest[dstIndex]     = source[srcIndex]
-                dest[dstIndex + 1] = source[srcIndex + 1]
-                dest[dstIndex + 2] = source[srcIndex + 2]
-                dest[dstIndex + 3] = source[srcIndex + 3]
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val si = (r * width + c) * 4
+                val dc = width - 1 - c
+                val di = (r * width + dc) * 4
+                for (i in 0..3) dest[di + i] = source[si + i]
             }
         }
         return dest
+    }
+
+
+    // ─── 운동 선택 다이얼로그 & 업로드 이동 ───────────────────
+    private fun showExerciseSelectionDialog() {
+        val options = arrayOf("푸쉬업", "런지")
+        AlertDialog.Builder(this)
+            .setTitle("운동 종류 선택")
+            .setItems(options) { _, which ->
+                val code = if (which == 0) "pushup" else "lunge"
+                navigateToUpload(code)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun navigateToUpload(selectedSport: String) {
+        Intent(this, UploadActivity::class.java).also {
+            it.putExtra("sportname", selectedSport)
+            startActivity(it)
+        }
+        finish()
+    }
+
+    // ─── 백엔드 AI 응답 처리 ───────────────────────────────────
+    private fun onPoseMessageReceived(message: String) {
+        Log.d("MainActivity", "AI 응답: $message")
+        runOnUiThread {
+            Toast.makeText(this, "AI: $message", Toast.LENGTH_SHORT).show()
+            // 또는, 레이아웃에 TextView(R.id.resultTextView)가 있으면:
+            // findViewById<TextView>(R.id.resultTextView).text =
+            //     JSONObject(message).optString("prediction_result", "")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try { videoCapturer.stopCapture() } catch (_: Exception) {}
+        surfaceViewRenderer.release()
+        peerConnectionFactory.dispose()
+        eglBase.release()
+        if (::poseLandmarker.isInitialized) poseLandmarker.close()
+        signalingClient?.disconnect()
     }
 }

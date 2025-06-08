@@ -1,10 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Workout Screen</title>
+    <style>
+        :root {
+            --primary-color:   #3a86ff;
+            --secondary-color: #8338ec;
+            --dark-color:      #1a1a2e;
+            --light-color:     #f8f9fa;
+            --radius:          8px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box }
+        body {
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:var(--dark-color);
+            color:var(--light-color);
+            padding:20px;
+        }
+        .container { max-width:1400px; margin:0 auto }
+        header { text-align:center; margin-bottom:30px }
+        h1 { font-size:2.5rem; color:var(--secondary-color); }
+
+        .video-container {
+            display:flex; flex-wrap:wrap; gap:20px; margin-bottom:30px;
+        }
+        .video-box {
+            flex:1; min-width:300px;
+            background:rgba(255,255,255,0.05);
+            border-radius:var(--radius);
+            overflow:hidden;
+            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+        }
+        .video-header {
+            padding:10px 15px;
+            background:var(--secondary-color);
+            color:white;
+            font-weight:bold;
+        }
+        .video-box:nth-child(1) .video-header {
+            background:var(--primary-color);
+        }
+        .video-content {
+            /* 기본 padding */
+            padding:15px;
+        }
+        video {
+            width:100%; height:auto; border-radius:var(--radius);
+        }
+
+        /* ─── My Video 부분만 수정 ─── */
+        /* ─── My Video 컨테이너를 16:9로 고정 ─── */
+        .video-box:first-child .video-content {
+            padding: 0;
+            aspect-ratio: 16 / 9;        /* ← 9/16 → 16/9 로 변경 */
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
+        /* 회전된 비디오가 짤리지 않고 전체 표시되도록 */
+        .video-box:first-child .video-content video {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            transform-origin: center center;
+            width: auto;                 /* ← width:100% → auto */
+            height: 100%;                /* 세로에 딱 맞추고 */
+            object-fit: contain;         /* 전체가 보이도록 */
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+        /* ──────────────────────────── */
+
+        .text-output {
+            background:rgba(255,255,255,0.05);
+            border-radius:var(--radius);
+            padding:20px;
+            margin-bottom:30px;
+            min-height:200px;
+            box-shadow:0 4px 6px rgba(0,0,0,0.1);
+        }
+        .text-output h2 { color:var(--primary-color); margin-bottom:15px }
+        .text-output-content {
+            background:rgba(0,0,0,0.2);
+            padding:15px;
+            border-radius:var(--radius);
+            min-height:120px;
+            font-family:monospace;
+            overflow-y:auto;
+        }
+
+        @media(max-width:768px){
+            .video-container { flex-direction:column }
+            .video-box { min-width:100% }
+            h1 { font-size:1.8rem }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <header>
+        <h1>Lunge</h1>
+        <p>본인 운동 영상과 정석 런지 자세를 비교해보세요!</p>
+    </header>
 
+    <div class="video-container">
+        <div class="video-box">
+            <div class="video-header">My Video</div>
+            <div class="video-content">
+                <video id="video1" autoplay playsinline controls></video>
+            </div>
+        </div>
+        <div class="video-box">
+            <div class="video-header">Reference Video</div>
+            <div class="video-content">
+                <video id="video2" autoplay playsinline controls></video>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-output">
+        <h2>Real-time Feedback</h2>
+        <div class="text-output-content" id="result"></div>
+    </div>
+</div>
+
+<script>
+    const signalingUrl = 'ws://3.39.137.250:8080/signaling';
+    const poseUrl      = 'ws://3.39.137.250:8080/pose';
+
+    const signalingConnection = new WebSocket(signalingUrl);
+    const poseConnection      = new WebSocket(poseUrl);
+
+    let peerConnection;
+    const config = {
+        iceServers:[
+            { urls:'stun:stun.l.google.com:19302' },
+            { urls:'turn:3.39.137.250:3478', username:'webrtcuser', credential:'secret-bucket123' }
+        ]
+    };
+
+    const video1 = document.getElementById('video1');
+    const video2 = document.getElementById('video2');
+    const resultDiv = document.getElementById('result');
+
+    signalingConnection.onopen = ()=> {
+        console.log('[✅ 시그널링] 서버에 연결됨');
+        createPeerConnection();
+    };
+
+    signalingConnection.onmessage = message=> {
+        const data = JSON.parse(message.data);
+        if(data.type==='offer'){
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            peerConnection.createAnswer()
+                .then(ans=>peerConnection.setLocalDescription(ans))
+                .then(()=>signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
+        }
+        else if(data.type==='answer' && peerConnection.signalingState==='have-local-offer'){
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+        }
+        else if(data.type==='candidate'){
+            peerConnection.addIceCandidate(new RTCIceCandidate({
+                candidate:data.candidate, sdpMid:data.sdpMid, sdpMLineIndex:data.sdpMLineIndex
+            }));
+        }
+    };
+
+    poseConnection.onopen = ()=> console.log('[✅ 포즈 데이터] 서버에 연결됨');
+    poseConnection.onmessage = msg=> resultDiv.innerText = JSON.parse(msg.data).prediction_result;
+    poseConnection.onerror = err=> console.error(err);
+
+    function createPeerConnection(){
+        peerConnection = new RTCPeerConnection(config);
+        peerConnection.onicecandidate = e=>{
+            if(e.candidate) signalingConnection.send(JSON.stringify({type:'candidate',candidate:e.candidate}));
+        };
+        peerConnection.ontrack = e=> video1.srcObject = e.streams[0];
+    }
+</script>
 </body>
 </html>

@@ -121,7 +121,15 @@ class PushUpPostureAnalyzer:
     def detect_faulty_posture(self, skeleton_sequence):
         """푸쉬업 동작을 분석하고 잘못된 자세를 감지합니다."""
         predictions = self.model.predict(skeleton_sequence)
-        predicted_label = np.argmax(predictions)
+        predicted_label = np.argmax(predictions, axis=-1)[0]
+        confidence = predictions[0][predicted_label]
+
+        # ✅ 결과 저장
+        if predicted_label == 0:
+            result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
+        else:
+            result = f"❌ 잘못된 자세 감지 ({confidence * 100:.2f}% 확신)"
+
         faults = {}
         
         # ✅ 2. 뷰 차원이 1이면 squeeze() 적용
@@ -130,12 +138,11 @@ class PushUpPostureAnalyzer:
             
         if predicted_label == 1:  # 잘못된 자세로 분류된 경우
             faults["척추"] = self.check_neutral_spine(skeleton_sequence)
-            # faults["팔꿈치"] = self.check_elbow_angle(skeleton_sequence)
             faults["가슴"] = self.check_chest_movement(skeleton_sequence)
             faults["손 위치"] = self.check_hand_position(skeleton_sequence)
             faults["머리 정렬"] = self.check_head_alignment(skeleton_sequence)
         
-        return {k: v for k, v in faults.items() if v is not None}
+        return {k: v for k, v in faults.items() if v is not None}, result
     
     def check_neutral_spine(self, skeleton_sequence):
         """척추가 중립적인 상태를 유지하는지 확인합니다."""
@@ -257,14 +264,15 @@ class PushUpPostureAnalyzer:
     
     def provide_feedback(self, skeleton_sequence):
         """감지된 자세 오류를 기반으로 실시간 피드백을 제공합니다."""
-        faults = self.detect_faulty_posture(skeleton_sequence)
+        faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return "자세 올바르지 않음."
-        
-        feedback = "다음 사항을 수정하세요: "
+            return f"{result}<br> 자세가 올바릅니다."
+
+        feedback = f"{result}<br> 다음 사항을 수정하세요: "
+
         for key, message in faults.items():
-            feedback += f"<br>- {message}"
+            feedback += f"<br> - {message}"
         
         return feedback
     
@@ -274,8 +282,9 @@ step_size = 4  # 4프레임마다 결과 출력
 def process_json_data(json_data):
     """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
     frame_data = np.zeros((1, 1, num_joints, num_features), dtype=np.float32)
-    
-    view3_data = json_data.get("frames", [{}])[0].get("view3", {}).get("pts", {})
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+        view3_data = json_data[0].get("view3", {}).get("pts", {})
     
     for joint_idx, joint_name in enumerate(keypoints):
         if joint_name in view3_data:
@@ -287,10 +296,11 @@ def process_json_data(json_data):
 def process_json_data_2(json_data):
     """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
     frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+        view4_data = json_data[0].get("view4", {}).get("pts", {})
     
-    view4_data = json_data.get("frames", [{}])[0].get("view4", {}).get("pts", {})
-    
-    for joint_idx, joint_name in enumerate(keypoints):
+    for joint_idx, joint_name in enumerate(keypoints_2):
         if joint_name in view4_data:
             frame_data[0, 0, joint_idx, 0] = view4_data[joint_name]["x"]
             frame_data[0, 0, joint_idx, 1] = view4_data[joint_name]["y"]
@@ -401,11 +411,12 @@ class LungePostureAnalyzer:
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return f"{result}<br>측정 불가"
+            return f"{result}<br> 자세가 올바릅니다."
         
-        feedback = f"{result}<br>다음 사항을 수정하세요: "
+        feedback = f"{result}<br> 다음 사항을 수정하세요: "
+
         for key, message in faults.items():
-            feedback += f"<br>- {message}"
+            feedback += f"<br> - {message}"
         
         return feedback
 
@@ -429,33 +440,45 @@ num_joints = 21
 num_features = 2 
 num_classes = 2  
 adjacency_matrix_norm = np.load("adjacency_matrix.npy")
+def pushup_load():
 
-model = STGCN(num_joints, num_features, adjacency_matrix_norm, num_classes)
+    model = STGCN(num_joints, num_features, adjacency_matrix_norm, num_classes)
 
-dummy_input = np.random.rand(1, 10, num_joints, num_features).astype(np.float32)
-model(dummy_input)
+    dummy_input = np.random.rand(1, 10, num_joints, num_features).astype(np.float32)
+    model(dummy_input)
 
-model.load_weights("stgcn_model5.weights.h5")
+    model.load_weights("stgcn_model6.weights.h5")
 
-analyzer = PushUpPostureAnalyzer(model)
+    pushup_analyzer = PushUpPostureAnalyzer(model)
+
+    return pushup_analyzer
 
 num_joints_2 = 14 
 num_features_2 = 3 
 num_classes_2 = 2  
 adjacency_matrix_norm_2 = np.load("adjacency_matrix_sport2.npy")
 
-model = STGCN_sport2(num_joints_2, num_features_2, adjacency_matrix_norm_2, num_classes_2)
+def lunge_load():
+    model = STGCN_sport2(num_joints_2, num_features_2, adjacency_matrix_norm_2, num_classes_2)
 
-dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
-model(dummy_input)
+    dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
+    model(dummy_input)
 
-model.load_weights("stgcn_model_sport2_C1.weights.h5")
+    model.load_weights("stgcn_model_sport2_C1.weights.h5")
+    
+    lunge_analyzer = LungePostureAnalyzer(model)
+
+    return lunge_analyzer
+
+current_exercise = None
 
 @app.websocket("/ws/connect")
 async def receive_json(websocket: WebSocket):
     # AI 모델이 WebSocket을 통해 백엔드의 JSON 데이터를 받고 저장하는 WebSocket 서버
     await websocket.accept()
 
+    global current_exercise
+    
     #print("FastAPI WebSocket 연결 성공!")
     logger.info("FastAPI WebSocket 연결 성공!")
     try:    
@@ -463,19 +486,81 @@ async def receive_json(websocket: WebSocket):
             try:
                 # 백엔드 서버에서 json데이터 수신
                 data = await websocket.receive_text()
-                json_data = json.loads(data)
+                msg = json.loads(data)
+
+                logger.info(f"메시지 수신됨 test: {data}")
+
+                msg_type = msg.get("type")
+
+                # 운동 선택인 경우
+                if msg_type == "select":
+                    exercise = msg.get("exercise")
+                    logger.info("운동 선택 확인")
+                    analyzer = None
+                    if exercise == "pushup":
+                        #푸쉬업 모델 실행
+                        analyzer = pushup_load()
+                        frame_buffer.clear()
+                        logger.info("푸쉬업 모델 로딩 완료")
+                    elif exercise == "lunge":
+                        # 런지 모델 실행
+                        analyzer = lunge_load()
+                        frame_buffer.clear()
+                        logger.info("런지 모델 로딩 완료")
+                    else:
+                        await websocket.send_text("지원하지 않는 운동입니다.")
+                        continue
+
+                    current_exercise = exercise
+                    await websocket.send_text(f"{exercise} 모델 로딩 완료")
+            
+
+                # 스켈레톤 데이터인 경우
+                elif msg_type == "pose":
+                    json_data = msg.get("frames",[])
+                    logger.info("스켈레톤 데이터 확인")
+                    if current_exercise is None:
+                        logger.info("1")
+                        await websocket.send_text("아직 운동이 선택되지 않았습니다.")
+                        logger.info("2")
+                        continue
+                    logger.info(f"3 current_exercise = {current_exercise}")
+                    # 버퍼 초기화
+                    if current_exercise == "pushup":
+                        logger.info(f"4 current_exercise = {current_exercise}")
+                        new_frame = process_json_data(json_data)
+                        logger.info("5")
+                    else:
+                        logger.info(f"6 current_exercise = {current_exercise}")
+                        new_frame = process_json_data_2(json_data)
+                        logger.info("7")
+                    frame_buffer.append(new_frame)
+
+                    logger.info("8")
+
+                    # 피드백 생성
+                    if len(frame_buffer) == 16:
+                        skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
+                        feedback = analyzer.provide_feedback(skeleton_sequence)
+                    
+                        response = {
+                            "status": "success",
+                            "message": "AI process OK",
+                            "prediction_result": feedback
+                        }
+                        await websocket.send_text(json.dumps(response, ensure_ascii=False))
+                    
+                        #print(f"spring로 응답 전송:{response}")
+                        logger.info(f"spring로 응답 전송:{response}")
+
+                        for _ in range(step_size):
+                            if frame_buffer:
+                                frame_buffer.popleft()  # 가장 오래된 프레임 제거
 
                 # json 파일 저장
-                json_file_path = f"{JSON_DIR}/user.json"
-                with open(json_file_path, "w", encoding="utf-8") as json_file:
-                    json.dump(json_data, json_file, indent=4, ensure_ascii=False)
-
-                #print(f"Json 데이터 저장 완료: {json_file_path}")
-                logger.info(f"Json 데이터 저장 완료: {json_file_path}")
-
-                # 1프레임 데이터를 슬라이딩 윈도우에 추가
-                new_frame = process_json_data(json_data)
-                frame_buffer.append(new_frame)
+                #json_file_path = f"{JSON_DIR}/user.json"
+                #with open(json_file_path, "w", encoding="utf-8") as json_file:
+                    #json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
                 if len(frame_buffer) == 16:
                     skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
@@ -496,9 +581,11 @@ async def receive_json(websocket: WebSocket):
                             frame_buffer.popleft()  # 가장 오래된 프레임 제거
 
             except Exception as e:
+                logger.error(f"메시지 수신 중 오류:{e}")
                 print(f"Websocket Error: {e}")
                 break
     except Exception as e:
+        logger.error("websocket 세션 종료: {e}")
         print(f"Websocket Error: {e}")
     finally:
         print("Websocket 종료 처리 완료.")
