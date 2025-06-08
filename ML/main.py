@@ -358,6 +358,7 @@ class LungePostureAnalyzer:
 
     def detect_faulty_posture(self, skeleton_sequence):
         predictions = self.model.predict(skeleton_sequence)
+        logger.info(f"[모델 출력] {predictions}")
         predicted_label = np.argmax(predictions, axis=-1)[0]
         confidence = predictions[0][predicted_label]
 
@@ -575,6 +576,7 @@ async def receive_json(websocket: WebSocket):
                     if len(frame_buffer) == 16:
                         skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
                         skeleton_sequence = normalize_sequence(skeleton_sequence)
+                        logger.info(f"[정규화 후] mean: {np.mean(skeleton_sequence):.4f}, std: {np.std(skeleton_sequence):.4f}")
                         feedback = analyzer.provide_feedback(skeleton_sequence)
                     
                         response = {
