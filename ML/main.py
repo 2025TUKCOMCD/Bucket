@@ -79,18 +79,39 @@ def load_json_skeleton_2(file_path):
 
     X_data = np.zeros((1, num_frames, num_views, num_joints_2, num_features_2), dtype=np.float32)
 
-    views = ["view4"]
+    views = ["view3"]
+
+    all_xyz = []
 
     # ✅ JSON 데이터 -> 배열 변환
     for frame_idx, frame in enumerate(data["frames"]):
         for view_idx, view in enumerate(views):
             pts = frame.get(view, {}).get("pts", {})
-            for joint_idx, joint_name in enumerate(keypoints_2):
-                if joint_name in pts:
-                    X_data[0, frame_idx, view_idx, joint_idx, 0] = pts[joint_name]["x"]
-                    X_data[0, frame_idx, view_idx, joint_idx, 1] = pts[joint_name]["y"]
 
-    return X_data
+             # 기준점: Point_23 & Point_24 평균
+            if "Point_23" in pts and "Point_24" in pts:
+                cx = (pts["Point_23"]["x"] + pts["Point_24"]["x"]) / 2
+                cy = (pts["Point_23"]["y"] + pts["Point_24"]["y"]) / 2
+                cz = (pts["Point_23"]["z"] + pts["Point_24"]["z"]) / 2
+            else:
+                cx, cy, cz = 0, 0, 0
+
+            for joint_idx, joint_name in enumerate(keypoints):
+                if joint_name in pts:
+                    x = pts[joint_name]["x"] - cx
+                    y = pts[joint_name]["y"] - cy
+                    z = pts[joint_name]["z"] - cz
+                    X_data[0, frame_idx, view_idx, joint_idx] = [x, y, z]
+                    all_xyz.append([x, y, z])
+    # (N*T*V*J, 3)
+    all_xyz = np.array(all_xyz)
+    mean = all_xyz.mean()
+    std = all_xyz.std()
+
+    # 전체 평균 기준으로 z-score 정규화
+    X_data = (X_data - mean) / std
+
+    return X_data, data.get("type_info", None)
 
 class PushUpPostureAnalyzer:
     def __init__(self, model):
@@ -298,12 +319,13 @@ def process_json_data_2(json_data):
     frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
 
     if isinstance(json_data, list) and len(json_data) > 0:
-        view4_data = json_data[0].get("view4", {}).get("pts", {})
+        view3_data = json_data[0].get("view3", {}).get("pts", {})
     
     for joint_idx, joint_name in enumerate(keypoints_2):
-        if joint_name in view4_data:
-            frame_data[0, 0, joint_idx, 0] = view4_data[joint_name]["x"]
-            frame_data[0, 0, joint_idx, 1] = view4_data[joint_name]["y"]
+        if joint_name in view3_data:
+            frame_data[0, 0, joint_idx, 0] = view3_data[joint_name]["x"]
+            frame_data[0, 0, joint_idx, 1] = view3_data[joint_name]["y"]
+            frame_data[0, 0, joint_idx, 2] = view3_data[joint_name]["z"]
     
     return frame_data
 
