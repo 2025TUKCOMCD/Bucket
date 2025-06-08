@@ -1,15 +1,18 @@
-// UploadActivity.kt
 package com.example.fe
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import okhttp3.RequestBody
-import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
+import okhttp3.RequestBody
 import org.json.JSONObject
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class UploadActivity : AppCompatActivity() {
 
@@ -34,11 +37,15 @@ class UploadActivity : AppCompatActivity() {
         etFeedback = findViewById(R.id.etFeedback)
         btnUpload  = findViewById(R.id.btnUpload)
 
-        // ❶ MainActivity에서 전달한 종목
+        // 1) MainActivity 에서 넘어온 종목 세팅
         val presetSport = intent.getStringExtra("sportname")
-        if (!presetSport.isNullOrEmpty()) {
-            etSport.setText(presetSport)
-            etSport.isEnabled = false
+        presetSport?.let {
+            etSport.setText(it)
+        }
+
+        // 2) etDate 클릭 시 DatePickerDialog 띄우기
+        etDate.setOnClickListener {
+            showDatePicker()
         }
 
         btnUpload.setOnClickListener {
@@ -49,8 +56,27 @@ class UploadActivity : AppCompatActivity() {
             val uid      = getSharedPreferences("auth", MODE_PRIVATE)
                 .getInt("uid", 1)
 
-            uploadRecord(sport, date, url, feedback, uid)
+            if (sport.isEmpty() || date.isEmpty() || url.isEmpty()) {
+                Toast.makeText(this, "운동, 날짜, URL은 필수 입력입니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                uploadRecord(sport, date, url, feedback, uid)
+            }
         }
+    }
+
+    private fun showDatePicker() {
+        val cal = Calendar.getInstance()
+        // 기본값: 오늘 날짜
+        val year  = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH)
+        val day   = cal.get(Calendar.DAY_OF_MONTH)
+
+        DatePickerDialog(this, { _, y, m, d ->
+            // 선택 결과를 "yyyy-MM-dd" 형식으로 EditText 에 표시
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            cal.set(y, m, d)
+            etDate.setText(sdf.format(cal.time))
+        }, year, month, day).show()
     }
 
     private fun uploadRecord(
@@ -75,10 +101,13 @@ class UploadActivity : AppCompatActivity() {
             .build()
 
         App.httpClient.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@UploadActivity,
-                        "업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@UploadActivity,
+                        "업로드 실패: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
@@ -87,8 +116,11 @@ class UploadActivity : AppCompatActivity() {
                         Toast.makeText(this@UploadActivity, "업로드 성공!", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
-                        Toast.makeText(this@UploadActivity,
-                            "업로드 실패: ${response.code}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@UploadActivity,
+                            "업로드 실패: ${response.code}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }

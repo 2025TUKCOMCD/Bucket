@@ -37,4 +37,10 @@
     <string name="selected_date">선택된 날짜: %1$s</string>
     <string name="hint_video_url">비디오 URL</string>
     <string name="btn_finish_exercise">운동 종료</string>
+
+    <string name="history_list_desc">운동 기록 목록</string>
+
+    <string name="login_logo_text">HOMEPT</string>
+
+
 </resources>

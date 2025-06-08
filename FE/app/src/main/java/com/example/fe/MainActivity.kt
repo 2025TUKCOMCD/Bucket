@@ -290,28 +290,48 @@ class MainActivity : AppCompatActivity() {
         poseLandmarker.detectAsync(mpImage, System.currentTimeMillis())
     }
 
+    // ─── PoseLandmarker 결과 처리 ───────────────────────────────────
     private fun handlePoseResult(result: PoseLandmarkerResult) {
+        // 1) 검출된 첫 번째 포즈 가져오기
         val landmarks = result.landmarks().firstOrNull() ?: return
-        val avgVis    = landmarks.map { it.visibility().orElse(0f) }.average()
+
+        // 2) 평균 가시도 계산 후 일정 이하면 무시
+        val avgVis = landmarks.map { it.visibility().orElse(0f) }.average()
         if (avgVis < 0.3) return
-        runOnUiThread { poseOverlayView.updateLandmarks(landmarks) }
+
+        // 3) 화면에 오버레이
+        runOnUiThread {
+            poseOverlayView.updateLandmarks(landmarks)
+        }
+
+        // 4) 전송 주기 체크
         val now = System.currentTimeMillis()
         if (now - lastPoseSendTime >= POSE_SEND_INTERVAL_MS) {
             lastPoseSendTime = now
-            val json = convertPoseToJson(landmarks)
-            signalingClient?.sendPoseMessage(json)
+
+            // 5) JSON 변환 후 서버로 전송
+            val jsonData = convertPoseDataToJson(landmarks)
+            signalingClient?.sendPoseMessage(jsonData)
         }
     }
 
-    private fun convertPoseToJson(
-        landmarks: List<NormalizedLandmark>
-    ): String {
-        val pts = landmarks.mapIndexed { i, lm ->
-            "Point_$i" to mapOf("x" to lm.x(), "y" to lm.y())
-        }.toMap()
-        val view   = mapOf("pts" to pts)
+    // ─── Pose 데이터를 JSON으로 변환 ───────────────────────────────────
+    private fun convertPoseDataToJson(landmarks: List<NormalizedLandmark>): String {
+        val pts = mutableMapOf<String, Map<String, Float>>()
+        landmarks.forEachIndexed { i, lm ->
+            pts["Point_$i"] = mapOf(
+                "x" to lm.x(),
+                "y" to lm.y(),
+                "z" to lm.z()    // Z 좌표까지 전송하고 싶으면 포함
+            )
+        }
+        val view = mapOf("pts" to pts)
         val frames = listOf(mapOf("view" to view))
-        return JSONObject(mapOf("type" to "pose", "frames" to frames)).toString()
+        val wrapper = mapOf(
+            "type" to "pose",
+            "frames" to frames
+        )
+        return JSONObject(wrapper).toString()
     }
 
     // ─── I420 → ARGB 변환 ───────────────────────────────────────
@@ -422,6 +442,7 @@ class MainActivity : AppCompatActivity() {
         }
         return dest
     }
+
 
     // ─── 운동 선택 다이얼로그 & 업로드 이동 ───────────────────
     private fun showExerciseSelectionDialog() {
