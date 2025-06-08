@@ -27,10 +27,6 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" width="50" height="50"/><br/>
       Python
     </td>
-    <td style="text-align: center;">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" alt="C#" width="50" height="50"/><br/>
-      C#
-    </td>
   </tr>
 </table>
 
@@ -48,10 +44,6 @@
     <td style="text-align: center;">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg" alt="TensorFlow" width="50" height="50"/><br/>
       TensorFlow
-    </td>
-    <td style="text-align: center;">
-      <img src="https://github.com/user-attachments/assets/a719fe97-e3ce-4b12-b318-1fee12b24f3b" alt="NRSDK" width="50" height="50"/><br/>
-      NRSDK
     </td>
   </tr>
 </table>
@@ -94,10 +86,6 @@
     <td style="text-align: center;">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/intellij/intellij-original.svg" alt="IntelliJ IDEA" width="50" height="50"/><br/>
       IntelliJ IDEA
-    </td>
-    <td style="text-align: center;">
-      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg" alt="Unity" width="50" height="50"/><br/>
-      Unity
     </td>
       <td style="text-align: center;">
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" alt="Visual Studio Code" width="50" height="50"/><br/>
