@@ -381,14 +381,14 @@
     let recordedChunks = [];
     let timerInterval;
     let recordingStartTime = null;
-    let sharedStream = null;
+    //let sharedStream = null;
 
     function startRecording() {
         //const stream = video1.srcObject;
 
         navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
             .then(stream => {
-                sharedStream = stream;
+                //sharedStream = stream;
                 mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
 
                 recordedChunks = [];
@@ -423,11 +423,11 @@
             mediaRecorder.stop();
             console.log("녹화 종료");
 
-            if(sharedStream){
-                sharedStream.getTracks().forEach(track => track.stop());
-                sharedStream=null;
-                console.log("화면 공유 중지됨");
-            }
+            //if(sharedStream){
+            //sharedStream.getTracks().forEach(track => track.stop());
+            //sharedStream=null;
+            // console.log("화면 공유 중지됨");
+            //}
         } else {
             console.warn("녹화가 아직 시작되지 않았습니다.");
         }
