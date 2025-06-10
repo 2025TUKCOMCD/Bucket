@@ -377,7 +377,8 @@
     };
 
 
-    let mediaRecorder;
+    let mediaRecorder=null;
+    console.log("mediaRecorder 초기값:", mediaRecorder);
     let recordedChunks = [];
     let timerInterval;
     let recordingStartTime = null;
@@ -389,40 +390,50 @@
         navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
             .then(stream => {
                 //sharedStream = stream;
+                console.log("[녹화] 화면 공유 허용됨, stream 얻음");
+
                 mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
+                console.log("[녹화] mediaRecorder 생성됨", mediaRecorder);
 
                 recordedChunks = [];
 
-                mediaRecorder.ondataavailable = e=>{
-                    if(e.data.size >0) recordedChunks.push(e.data);
+                mediaRecorder.ondataavailable = e => {
+                    console.log("[녹화] ondataavailable fired");
+                    if (e.data.size > 0) recordedChunks.push(e.data);
                 };
 
                 mediaRecorder.onstop = () => {
+                    console.log("[녹화] 녹화 중지됨. chunk 개수:", recordedChunks.length);
                     const blob = new Blob(recordedChunks, {type: 'video/webm'});
                     uploadToServer(blob);
                     stopTimer();
-                }
+                };
 
                 mediaRecorder.start();
-                console.log("화면 녹화 시작");
+                console.log("[녹화] mediaRecorder.start() 호출됨");
 
                 startTimer();
             })
             .catch(err => {
-                console.error("화면 녹화 오류: " ,err);
-            })
+                console.error("[녹화] 화면 공유 실패 또는 취소됨:", err);
+            });
         // if (!stream) {
-        //     console.warn("스트림이 아직 연결되지 않았습니다.");
+        //     console.warn("스트림이 아직 연결되지 않d았습니다.");
         //     return;
         // }
     }
 
 
     function stopRecording() {
+        console.log("[녹화] stopRecording() 호출됨");
+
+        console.log("[녹화] mediaRecorder 현재 상태:", mediaRecorder);
+
+
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
             mediaRecorder.stop();
             console.log("녹화 종료");
-
+            console.log("[녹화] mediaRecorder.stop() 호출됨");
             //if(sharedStream){
             //sharedStream.getTracks().forEach(track => track.stop());
             //sharedStream=null;
@@ -430,6 +441,7 @@
             //}
         } else {
             console.warn("녹화가 아직 시작되지 않았습니다.");
+            console.warn("[녹화] mediaRecorder가 초기화되지 않았거나 이미 중지됨");
         }
     }
 
