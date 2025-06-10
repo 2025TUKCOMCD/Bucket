@@ -390,21 +390,32 @@
         navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
             .then(stream => {
                 //sharedStream = stream;
-                console.log("[녹화] 화면 공유 허용됨, stream 얻음");
+                console.log("stream tracks:", stream.getVideoTracks());
 
-                mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
-                console.log("[녹화] mediaRecorder 생성됨", mediaRecorder);
+                const track = stream.getVideoTracks()[0];
+                console.log("track kind:", track.kind);
+                console.log("can record?", MediaRecorder.isTypeSupported("video/webm"));
+
+                try {
+                    // 테스트용 확인은 그대로 두고
+                    const recorder = new MediaRecorder(stream);
+                    console.log("MediaRecorder created:", recorder);
+
+                    // 실제로 사용될 mediaRecorder도 꼭 할당해줘야 함
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+                } catch (e) {
+                    console.error("MediaRecorder 생성 실패:", e);
+                    return; // 실패 시 아래 코드 실행 방지
+                }
 
                 recordedChunks = [];
 
                 mediaRecorder.ondataavailable = e => {
-                    console.log("[녹화] ondataavailable fired");
                     if (e.data.size > 0) recordedChunks.push(e.data);
                 };
 
                 mediaRecorder.onstop = () => {
-                    console.log("[녹화] 녹화 중지됨. chunk 개수:", recordedChunks.length);
-                    const blob = new Blob(recordedChunks, {type: 'video/webm'});
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
                     uploadToServer(blob);
                     stopTimer();
                 };
