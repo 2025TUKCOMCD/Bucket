@@ -17,7 +17,7 @@ class LoginActivity : AppCompatActivity() {
     companion object {
         // ▶ App.kt에서 만든 싱글턴 OkHttpClient 사용
         private val client: OkHttpClient = App.httpClient
-        private const val BASE_URL = "http://3.39.137.250:8080"
+        private const val BASE_URL = "http://homept.online:8080"
     }
 
     private lateinit var etId: EditText

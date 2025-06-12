@@ -101,6 +101,6 @@
         }
 
         companion object {
-            private const val BASE_URL = "http://3.39.137.250:8080"
+            private const val BASE_URL = "http://homept.online:8080"
         }
     }
