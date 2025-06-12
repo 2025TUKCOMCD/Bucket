@@ -354,6 +354,9 @@ class LungePostureAnalyzer:
         predicted_label = np.argmax(predictions, axis=-1)[0]
         confidence = predictions[0][predicted_label]
 
+        logger.info(f"예측된 레이블: {predicted_label}, 확신도: {confidence * 100:.2f}%")
+        logger.info(f"클래스 확률 분포: {predictions[0] * 100}")
+        
         # ✅ 결과 저장
         if predicted_label == 0:
             result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
