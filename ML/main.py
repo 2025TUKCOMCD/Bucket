@@ -13,38 +13,11 @@ import logging
 from scipy.signal import savgol_filter
 from stgcn_sport2 import STGCN_sport2
 
-keypoints = [
-    "Point_0", "Point_7", "Point_8", "Point_11", "Point_12", "Point_13",
-    "Point_14", "Point_15", "Point_16", "Point_17", "Point_18", "Point_21",
-    "Point_22","Point_23", "Point_24", "Point_25", "Point_26", "Point_27",
-    "Point_28", "Point_29", "Point_30"
-]
+keypoints = [f"Point_{i}" for i in [0,7,8,11,12,13,14,15,16,17,18,21,22,23,24,25,26,27,28,29,30]]
+keypoints_2 = [f"Point_{i}" for i in [0,7,11,12,23,24,25,26,27,28,29,30,31,32]]
 
-keypoints_2 = [
-    "Point_0", "Point_7", "Point_11", "Point_12", "Point_23", "Point_24",
-    "Point_25", "Point_26", "Point_27", "Point_28", "Point_29", "Point_30",
-    "Point_31", "Point_32"
-]
-
-# FastAPI 앱 생성
-app = FastAPI()
-
-# 로그 설정 (파일 + 콘솔 출력)
-logging.basicConfig(
-    filename="/home/ubuntu/bucket/fastapi.log", 
-    filemode="w", 
-    format="%(asctime)s - %(levelname)s - %(message)s",  # 로그 형식
-    level=logging.DEBUG)
-
-logger = logging.getLogger("uvicorn")
-logger.setLevel(logging.DEBUG)
-
-# 콘솔 로그 핸들러 추가 (콘솔 + 파일 로그 저장)
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+frame_buffer = deque(maxlen=16)
+step_size = 4  # 4프레임마다 결과 출력
 
 def load_json_skeleton(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
@@ -69,8 +42,6 @@ def load_json_skeleton(file_path):
                     X_data[0, frame_idx, view_idx, joint_idx, 1] = pts[joint_name]["y"]
 
     return X_data
-
-def load_json_skeleton_2(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -112,6 +83,69 @@ def load_json_skeleton_2(file_path):
     X_data = (X_data - mean) / std
 
     return X_data, data.get("type_info", None)
+
+def center_pose_sequence(X_data):
+    X = X_data.copy()
+    idx_23 = keypoints_2.index("Point_23")
+    idx_24 = keypoints_2.index("Point_24")
+
+    for t in range(X.shape[1]):
+        center = (X[0, t, idx_23] + X[0, t, idx_24]) / 2
+        X[0, t] = X[0, t] - center  # 모든 관절에서 중심 좌표 빼기
+
+    return X
+
+def normalize_pose_scale(X_data):
+    X = X_data.copy()
+    T, V = X.shape[1], X.shape[3]
+
+    for t in range(T):
+        joints = X[0, t, 0]  # shape (V, 3)
+        dists = []
+        for i in range(V):
+            for j in range(i + 1, V):
+                dists.append(np.linalg.norm(joints[i] - joints[j]))
+        mean_dist = np.mean(dists)
+        if mean_dist > 1e-8:
+            X[0, t, 0] /= mean_dist  # 스케일 정규화
+    return X
+
+def preprocess_3d_pose(X_data):
+    X_data = center_pose_sequence(X_data)
+    mean = np.load("train_mean.npy")
+    std = np.load("train_std.npy")
+    X_data = (X_data - mean) / std
+    X_data = normalize_pose_scale(X_data)
+    return X_data
+
+def process_json_data(json_data):
+    """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
+    frame_data = np.zeros((1, 1, num_joints, num_features), dtype=np.float32)
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+        view3_data = json_data[0].get("view3", {}).get("pts", {})
+    
+    for joint_idx, joint_name in enumerate(keypoints):
+        if joint_name in view3_data:
+            frame_data[0, 0, joint_idx, 0] = view3_data[joint_name]["x"]
+            frame_data[0, 0, joint_idx, 1] = view3_data[joint_name]["y"]
+    
+    return frame_data
+    
+def process_json_data_2(json_data):
+    """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
+    frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
+
+    if isinstance(json_data, list) and len(json_data) > 0:
+        view3_data = json_data[0].get("view3", {}).get("pts", {})
+    
+    for joint_idx, joint_name in enumerate(keypoints_2):
+        if joint_name in view3_data:
+            frame_data[0, 0, joint_idx, 0] = view3_data[joint_name]["x"]
+            frame_data[0, 0, joint_idx, 1] = view3_data[joint_name]["y"]
+            frame_data[0, 0, joint_idx, 2] = view3_data[joint_name]["z"]
+    
+    return frame_data
 
 class PushUpPostureAnalyzer:
     def __init__(self, model):
@@ -297,50 +331,6 @@ class PushUpPostureAnalyzer:
         
         return feedback
     
-frame_buffer = deque(maxlen=16)
-step_size = 4  # 4프레임마다 결과 출력
-
-def process_json_data(json_data):
-    """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
-    frame_data = np.zeros((1, 1, num_joints, num_features), dtype=np.float32)
-
-    if isinstance(json_data, list) and len(json_data) > 0:
-        view3_data = json_data[0].get("view3", {}).get("pts", {})
-    
-    for joint_idx, joint_name in enumerate(keypoints):
-        if joint_name in view3_data:
-            frame_data[0, 0, joint_idx, 0] = view3_data[joint_name]["x"]
-            frame_data[0, 0, joint_idx, 1] = view3_data[joint_name]["y"]
-    
-    return frame_data
-    
-def process_json_data_2(json_data):
-    """ JSON 데이터를 받아 1프레임 데이터를 추출하여 슬라이딩 윈도우에 추가 """
-    frame_data = np.zeros((1, 1, num_joints_2, num_features_2), dtype=np.float32)
-
-    if isinstance(json_data, list) and len(json_data) > 0:
-        view3_data = json_data[0].get("view3", {}).get("pts", {})
-    
-    for joint_idx, joint_name in enumerate(keypoints_2):
-        if joint_name in view3_data:
-            frame_data[0, 0, joint_idx, 0] = view3_data[joint_name]["x"]
-            frame_data[0, 0, joint_idx, 1] = view3_data[joint_name]["y"]
-            frame_data[0, 0, joint_idx, 2] = view3_data[joint_name]["z"]
-    
-    return frame_data
-
-def normalize_sequence(skeleton_sequence):
-    # 중심 이동
-    mid_hip = (skeleton_sequence[:, :, keypoints_2.index("Point_23"), :] + 
-            skeleton_sequence[:, :, keypoints_2.index("Point_24"), :]) / 2
-    skeleton_sequence = skeleton_sequence - mid_hip[:, :, np.newaxis, :]  # 중심 정렬
-
-    # z-score 정규화
-    mean = np.mean(skeleton_sequence)
-    std = np.std(skeleton_sequence) + 1e-6
-    skeleton_sequence = (skeleton_sequence - mean) / std
-    return skeleton_sequence
-
 class LungePostureAnalyzer:
     def __init__(self, model):
         self.model = model
@@ -358,7 +348,6 @@ class LungePostureAnalyzer:
 
     def detect_faulty_posture(self, skeleton_sequence):
         predictions = self.model.predict(skeleton_sequence)
-        logger.info(f"[모델 출력] {predictions}")
         predicted_label = np.argmax(predictions, axis=-1)[0]
         confidence = predictions[0][predicted_label]
 
@@ -376,7 +365,6 @@ class LungePostureAnalyzer:
             
         if predicted_label == 1:  # 잘못된 자세로 분류된 경우
             faults["발방향"] = self.check_feet_direction(skeleton_sequence)
-            faults["무릎정렬"] = self.check_knees_alignment(skeleton_sequence)
             faults["어깨수평"] = self.check_shoulders_level(skeleton_sequence)
             faults["비틀림"] = self.check_body_twist(skeleton_sequence)
         
@@ -390,38 +378,23 @@ class LungePostureAnalyzer:
         return np.degrees(angle)
         
     def check_feet_direction(self, skeleton_sequence):
-        la = self.joint_indices['left_ankle'] 
-        ra = self.joint_indices['right_ankle'] 
+        la = self.joint_indices['left_ankle']
+        ra = self.joint_indices['right_ankle']
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
         left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
         right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
         avg_diff = np.mean(np.array([left_diff, right_diff]))
-        if avg_diff > 0.2:
+        if avg_diff > 0.07:
             return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
-        return None
-
-    def check_knees_alignment(self, skeleton_sequence, is_left=True):
-        knee_idx = self.joint_indices['left_knee'] if is_left else self.joint_indices['right_knee']
-        ankle_idx = self.joint_indices['left_ankle'] if is_left else self.joint_indices['right_ankle']
-        
-        # 무릎 → 발목 벡터 계산
-        knee_to_ankle_vec = skeleton_sequence[:, :, ankle_idx, :] - skeleton_sequence[:, :, knee_idx, :]
-        
-        # y축 기준으로 벡터의 기울기 (수직 벡터: [0, 1, 0])
-        vertical_vec = np.array([0, 1, 0])  # y축 기준 수직 벡터
-        angle = self.calculate_vector_angle(knee_to_ankle_vec, vertical_vec)  # 무릎-발목 벡터와 y축 벡터 사이의 각도 계산
-        # 각도가 일정 threshold 이상이면, 무릎이 과도하게 기울어진 것으로 판단
-        if np.mean(angle) > 45:  # 30도 이상 기울어졌으면 비정상
-            return "무릎이 과도하게 기울어졌습니다. 무릎을 수직으로 유지하세요."
-        
         return None
         
     def check_shoulders_level(self, skeleton_sequence):
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
-        if np.mean(shoulder_diff) > 0.1:  # 기준값은 데이터 스케일에 따라 조정
+        avg_shoulder_diff = np.mean(shoulder_diff)
+        if avg_shoulder_diff > 0.04:  # 기준값은 데이터 스케일에 따라 조정
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
 
@@ -436,7 +409,8 @@ class LungePostureAnalyzer:
     
         # 회전량 측정: cross product의 y 성분
         twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
-        if np.mean(np.abs(twist)) > 0.045:
+        avg_twist = np.mean(np.abs(twist))
+        if avg_twist > 0.009:
             return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
 
@@ -445,14 +419,33 @@ class LungePostureAnalyzer:
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return f"{result}<br> 자세가 올바릅니다."
+            return f"{result}\n측정 불가"
         
-        feedback = f"{result}<br> 다음 사항을 수정하세요: "
-
+        feedback = f"{result}\n다음 사항을 수정하세요: "
         for key, message in faults.items():
-            feedback += f"<br> - {message}"
+            feedback += f"\n- {message}"
         
         return feedback
+
+# FastAPI 앱 생성
+app = FastAPI()
+
+# 로그 설정 (파일 + 콘솔 출력)
+logging.basicConfig(
+    filename="/home/ubuntu/bucket/fastapi.log", 
+    filemode="w", 
+    format="%(asctime)s - %(levelname)s - %(message)s",  # 로그 형식
+    level=logging.DEBUG)
+
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.DEBUG)
+
+# 콘솔 로그 핸들러 추가 (콘솔 + 파일 로그 저장)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 # CORS 설정 (모든 출처 허용)
 app.add_middleware(
@@ -498,7 +491,7 @@ def lunge_load():
     dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
     model(dummy_input)
 
-    model.load_weights("stgcn_model_sport2_C1.weights.h5")
+    model.load_weights("stgcn_model_sport2_C3.weights.h5")
     
     lunge_analyzer = LungePostureAnalyzer(model)
 
@@ -547,35 +540,28 @@ async def receive_json(websocket: WebSocket):
 
                     current_exercise = exercise
                     await websocket.send_text(f"{exercise} 모델 로딩 완료")
-            
 
                 # 스켈레톤 데이터인 경우
                 elif msg_type == "pose":
                     json_data = msg.get("frames",[])
                     logger.info("스켈레톤 데이터 확인")
                     if current_exercise is None:
-                        logger.info("1")
                         await websocket.send_text("아직 운동이 선택되지 않았습니다.")
-                        logger.info("2")
                         continue
                     logger.info(f"3 current_exercise = {current_exercise}")
                     # 버퍼 초기화
                     if current_exercise == "pushup":
                         logger.info(f"4 current_exercise = {current_exercise}")
                         new_frame = process_json_data(json_data)
-                        logger.info("5")
                     else:
                         logger.info(f"6 current_exercise = {current_exercise}")
                         new_frame = process_json_data_2(json_data)
-                        logger.info("7")
                     frame_buffer.append(new_frame)
-
-                    logger.info("8")
 
                     # 피드백 생성
                     if len(frame_buffer) == 16:
-                        skeleton_sequence = np.concatenate(frame_buffer, axis=1)  # (1, 32, joints, features)
-                        skeleton_sequence = normalize_sequence(skeleton_sequence)
+                        skeleton_sequence = np.concatenate(frame_buffer, axis=1)
+                        skeleton_sequence = preprocess_3d_pose(skeleton_sequence)
                         logger.info(f"[정규화 후] mean: {np.mean(skeleton_sequence):.4f}, std: {np.std(skeleton_sequence):.4f}")
                         feedback = analyzer.provide_feedback(skeleton_sequence)
                     
