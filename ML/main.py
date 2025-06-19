@@ -497,7 +497,7 @@ def lunge_load():
     dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
     model(dummy_input)
 
-    model.load_weights("stgcn_model_sport2_C3.weights.h5")
+    model.load_weights("stgcn_model_sport2_C1.weights.h5")
     
     lunge_analyzer = LungePostureAnalyzer(model)
 
