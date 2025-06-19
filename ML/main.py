@@ -112,8 +112,15 @@ def normalize_pose_scale(X_data):
 
 def preprocess_3d_pose(X_data):
     X_data = center_pose_sequence(X_data)
-    mean = np.load("train_mean.npy")
-    std = np.load("train_std.npy")
+    # mean = np.load("train_mean.npy")
+    # std = np.load("train_std.npy")
+    # X_data = (X_data - mean) / std
+    
+    # (1, 16, joints, 3) → (N*T*V, C)
+    flat = X_data.reshape(-1, X_data.shape[-1])  # shape: (16*V, 3)
+    mean = np.mean(flat, axis=0)
+    std = np.std(flat, axis=0) + 1e-8  # 0 나눗셈 방지용 epsilon
+
     X_data = (X_data - mean) / std
     X_data = normalize_pose_scale(X_data)
     return X_data
