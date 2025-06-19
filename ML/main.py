@@ -391,6 +391,7 @@ class LungePostureAnalyzer:
         left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
         right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
         avg_diff = np.mean(np.array([left_diff, right_diff]))
+        logger.info(f"avg_diff: {avg_diff}")
         if avg_diff > 0.07:
             return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         return None
@@ -399,7 +400,8 @@ class LungePostureAnalyzer:
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
-        avg_shoulder_diff = np.mean(shoulder_diff)
+        avg_shoulder_diff = np.mean(shoulder_diff)       
+        logger.info(f"avg_shoulder_diff: {avg_shoulder_diff}")
         if avg_shoulder_diff > 0.04:  # 기준값은 데이터 스케일에 따라 조정
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
@@ -416,6 +418,7 @@ class LungePostureAnalyzer:
         # 회전량 측정: cross product의 y 성분
         twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
         avg_twist = np.mean(np.abs(twist))
+        logger.info(f"avg_twist: {avg_twist}")
         if avg_twist > 0.009:
             return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
