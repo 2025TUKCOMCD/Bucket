@@ -567,6 +567,9 @@ async def receive_json(websocket: WebSocket):
                     # 피드백 생성
                     if len(frame_buffer) == 16:
                         skeleton_sequence = np.concatenate(frame_buffer, axis=1)
+                        if skeleton_sequence.ndim == 5 and skeleton_sequence.shape[2] == 1:
+                            skeleton_sequence = np.squeeze(skeleton_sequence, axis=2)
+                        logger.info(f"[모델 입력 shape]: {skeleton_sequence.shape}")
                         skeleton_sequence = preprocess_3d_pose(skeleton_sequence)
                         logger.info(f"[정규화 후] mean: {np.mean(skeleton_sequence):.4f}, std: {np.std(skeleton_sequence):.4f}")
                         feedback = analyzer.provide_feedback(skeleton_sequence)
