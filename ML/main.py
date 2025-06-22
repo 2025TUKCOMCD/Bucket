@@ -414,7 +414,7 @@ class LungePostureAnalyzer:
         angle = np.degrees(np.arcsin(dy / shoulder_length))  
         avg_angle = np.mean(np.abs(angle))
         logger.info(f"avg_angle: {avg_angle}")
-        if avg_angle > 20:  
+        if avg_angle > 90:  
 #         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
 #         avg_shoulder_diff = np.mean(shoulder_diff)       
 #         logger.info(f"ls: {skeleton_sequence[:, :, ls, 1]}")   
