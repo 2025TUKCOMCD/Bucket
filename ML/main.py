@@ -392,9 +392,15 @@ class LungePostureAnalyzer:
     def check_shoulders_level(self, skeleton_sequence):
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
-        shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
-        avg_shoulder_diff = np.mean(shoulder_diff)
-        if avg_shoulder_diff > 0.04:  # 기준값은 데이터 스케일에 따라 조정
+    
+        shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
+        
+        dy = shoulder_vec[:, :, 1]  # (1, T)
+        shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
+        angle = np.degrees(np.arcsin(dy / shoulder_length))  
+        avg_angle = np.mean(np.abs(angle))
+        logger.info(f"avg_angle: {avg_angle}")
+        if avg_angle > 20:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
 
