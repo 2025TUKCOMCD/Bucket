@@ -6,10 +6,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.Request
-import okhttp3.RequestBody
-import org.json.JSONObject
+import okhttp3.*
+import okhttp3.FormBody
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,8 +15,8 @@ import java.util.*
 class UploadActivity : AppCompatActivity() {
 
     companion object {
-        private const val BASE_URL = "http://3.39.137.250:8080"
-        private val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
+        // HTTPS 기본 포트(443) 로 서비스 중이라면 포트번호 생략
+        private const val BASE_URL = "https://homept.online"
     }
 
     private lateinit var etSport: EditText
@@ -37,93 +35,117 @@ class UploadActivity : AppCompatActivity() {
         etFeedback = findViewById(R.id.etFeedback)
         btnUpload  = findViewById(R.id.btnUpload)
 
-        // 1) MainActivity 에서 넘어온 종목 세팅
-        val presetSport = intent.getStringExtra("sportname")
-        presetSport?.let {
-            etSport.setText(it)
-        }
+        // MainActivity에서 전달된 종목 설정
+        intent.getStringExtra("sportname")?.also { etSport.setText(it) }
 
-        // 2) etDate 클릭 시 DatePickerDialog 띄우기
-        etDate.setOnClickListener {
-            showDatePicker()
-        }
+        // 날짜 선택
+        etDate.setOnClickListener { showDatePicker() }
 
         btnUpload.setOnClickListener {
-            val sport    = presetSport ?: etSport.text.toString().trim()
+            val uid      = getSharedPreferences("auth", MODE_PRIVATE).getInt("uid", 1)
+            val sport    = etSport.text.toString().trim()
             val date     = etDate.text.toString().trim()
-            val url      = etUrl.text.toString().trim()
             val feedback = etFeedback.text.toString().trim()
-            val uid      = getSharedPreferences("auth", MODE_PRIVATE)
-                .getInt("uid", 1)
 
-            if (sport.isEmpty() || date.isEmpty() || url.isEmpty()) {
-                Toast.makeText(this, "운동, 날짜, URL은 필수 입력입니다.", Toast.LENGTH_SHORT).show()
-            } else {
-                uploadRecord(sport, date, url, feedback, uid)
+            if (sport.isEmpty() || date.isEmpty()) {
+                Toast.makeText(this, "운동명과 날짜는 필수입니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // ① Redis에서 S3 URL 꺼내오기
+            fetchVideoUrl(uid) { s3Url ->
+                // UI에 미리보기용으로 넣어두고
+                runOnUiThread { etUrl.setText(s3Url) }
+                // ② 그 URL을 포함해 기록 저장
+                postRecord(uid, sport, date, s3Url, feedback)
             }
         }
     }
 
-    private fun showDatePicker() {
-        val cal = Calendar.getInstance()
-        // 기본값: 오늘 날짜
-        val year  = cal.get(Calendar.YEAR)
-        val month = cal.get(Calendar.MONTH)
-        val day   = cal.get(Calendar.DAY_OF_MONTH)
-
-        DatePickerDialog(this, { _, y, m, d ->
-            // 선택 결과를 "yyyy-MM-dd" 형식으로 EditText 에 표시
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            cal.set(y, m, d)
-            etDate.setText(sdf.format(cal.time))
-        }, year, month, day).show()
-    }
-
-    private fun uploadRecord(
-        sportname: String,
-        recordDate: String,
-        videoUrl: String,
-        feedback: String,
-        uid: Int
-    ) {
-        val json = JSONObject().apply {
-            put("sportname", sportname)
-            put("recordDate", recordDate)
-            put("videoUrl", videoUrl)
-            put("feedback", feedback)
-            put("user", JSONObject().put("uid", uid))
-        }.toString()
-
-        val body = RequestBody.create(JSON, json)
+    private fun fetchVideoUrl(uid: Int, onResult: (String) -> Unit) {
         val request = Request.Builder()
-            .url("$BASE_URL/api/user-videos")
-            .post(body)
+            .url("$BASE_URL/api/user-videos/url/$uid")
+            .get()
             .build()
 
-        App.httpClient.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
+        App.httpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(
-                        this@UploadActivity,
-                        "업로드 실패: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@UploadActivity, "URL 조회 실패: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val body = response.body?.string()?.trim().orEmpty()
+                    if (body.isNotEmpty()) {
+                        onResult(body)
+                    } else {
+                        runOnUiThread {
+                            Toast.makeText(this@UploadActivity, "URL이 비어 있습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this@UploadActivity, "URL 조회 오류: ${response.code}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun postRecord(
+        uid: Int,
+        sport: String,
+        recordDate: String,
+        videoUrl: String,
+        feedback: String
+    ) {
+        val form = FormBody.Builder()
+            .add("uid", uid.toString())
+            .add("sportname", sport)
+            .add("recordDate", recordDate)
+            .add("videoUrl", videoUrl)
+            .add("feedback", feedback)
+            .build()
+
+        val request = Request.Builder()
+            .url("$BASE_URL/api/user-videos")
+            .post(form)
+            .build()
+
+        App.httpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@UploadActivity, "기록 업로드 실패: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+            override fun onResponse(call: Call, response: Response) {
+                val body = response.body?.string().orEmpty()
                 runOnUiThread {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@UploadActivity, "업로드 성공!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@UploadActivity, "기록 업로드 성공!", Toast.LENGTH_SHORT).show()
                         finish()
                     } else {
                         Toast.makeText(
                             this@UploadActivity,
-                            "업로드 실패: ${response.code}",
-                            Toast.LENGTH_SHORT
+                            "업로드 실패(${response.code}): $body",
+                            Toast.LENGTH_LONG
                         ).show()
                     }
                 }
             }
         })
+    }
+
+    private fun showDatePicker() {
+        val cal = Calendar.getInstance()
+        DatePickerDialog(this,
+            { _, y, m, d ->
+                cal.set(y, m, d)
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                etDate.setText(sdf.format(cal.time))
+            },
+            cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 }

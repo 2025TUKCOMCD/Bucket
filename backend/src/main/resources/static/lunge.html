@@ -123,61 +123,302 @@
         <h2>Real-time Feedback</h2>
         <div class="text-output-content" id="result"></div>
     </div>
+    <button onclick="startRecording()">녹화 시작</button>
+    <button onclick="stopRecording()">녹화 종료</button>
+</div>
+<div id="recording-timer" style="font-size: 20px; color: #00ff99; margin-top: 10px;">
+    녹화 시간: 00:00
 </div>
 
 <script>
-    const signalingUrl = 'ws://3.39.137.250:8080/signaling';
-    const poseUrl      = 'ws://3.39.137.250:8080/pose';
-
+    // ✅ 시그널링 서버 URL
+    const signalingUrl = 'wss://homept.online/signaling';
     const signalingConnection = new WebSocket(signalingUrl);
-    const poseConnection      = new WebSocket(poseUrl);
+
+    // ✅ 포즈 데이터 전용 WebSocket
+    const poseUrl = 'wss://homept.online/pose';
+    //const poseUrl = 'ws://localhost:8080/pose'
+    const poseConnection = new WebSocket(poseUrl);
+
+    // let peerConnection;
+    // const config = {
+    //     iceServers: [
+    //         { urls: 'stun:stun.l.google.com:19302' },
+    //         {
+    //             urls: 'turn:3.39.137.250:3478',
+    //             username: 'unused',              // static-auth-secret 사용 시 특별한 의미 없음
+    //             credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
+    //         }
+    //     ]
+    // };
 
     let peerConnection;
     const config = {
-        iceServers:[
-            { urls:'stun:stun.l.google.com:19302' },
-            { urls:'turn:3.39.137.250:3478', username:'webrtcuser', credential:'secret-bucket123' }
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            {
+                urls: 'turn:3.39.137.250:3478',
+                username: 'webrtcuser',              // static-auth-secret 사용 시 특별한 의미 없음
+                credential: 'secret-bucket123'   // 위 turnserver.conf의 static-auth-secret 값
+            }
         ]
     };
 
+    // const pc = new RTCPeerConnection({
+    //     iceServers: [
+    //         { urls: 'stun:stun.l.google.com:19302' },
+    //         {
+    //             urls: "turn:3.39.137.250:3478",
+    //             username: "webrtcuser",
+    //             credential: "secret-bucket123"
+    //         }
+    //     ]
+    // });
+
+    // video 요소 선택
     const video1 = document.getElementById('video1');
     const video2 = document.getElementById('video2');
     const resultDiv = document.getElementById('result');
 
-    signalingConnection.onopen = ()=> {
+    // ✅ 시그널링 서버 연결 이벤트
+    signalingConnection.onopen = () => {
         console.log('[✅ 시그널링] 서버에 연결됨');
         createPeerConnection();
     };
 
-    signalingConnection.onmessage = message=> {
+    // ✅ 시그널링 서버에서 메시지 수신
+    signalingConnection.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        if(data.type==='offer'){
+        console.log('[📩 시그널링 메시지 수신]:', data);
+
+        if (data.type === 'offer') {
+            // offer 수신 시 remote description 설정
             peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            peerConnection.createAnswer()
-                .then(ans=>peerConnection.setLocalDescription(ans))
-                .then(()=>signalingConnection.send(JSON.stringify(peerConnection.localDescription)));
-        }
-        else if(data.type==='answer' && peerConnection.signalingState==='have-local-offer'){
-            peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-        }
-        else if(data.type==='candidate'){
-            peerConnection.addIceCandidate(new RTCIceCandidate({
-                candidate:data.candidate, sdpMid:data.sdpMid, sdpMLineIndex:data.sdpMLineIndex
-            }));
+            peerConnection.createAnswer().then(answer => {
+                return peerConnection.setLocalDescription(answer);
+            }).then(() => {
+                signalingConnection.send(JSON.stringify(peerConnection.localDescription));
+            });
+        } else if (data.type === 'answer') {
+            // 연결 상태 확인 후 answer 처리
+            if (peerConnection.signalingState === 'have-local-offer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            } else {
+                console.warn('Remote answer를 무시합니다. 현재 signaling state:', peerConnection.signalingState);
+            }
+        } else if (data.type === 'candidate') {
+            // ICE candidate 처리
+            let candidateObj;
+            if (typeof data.candidate === 'object' && data.candidate !== null) {
+                candidateObj = data.candidate;
+            } else {
+                candidateObj = {
+                    candidate: data.candidate,
+                    sdpMid: data.sdpMid,
+                    sdpMLineIndex: data.sdpMLineIndex
+                };
+            }
+            const candidateInit = {
+                candidate: candidateObj.candidate,
+                sdpMid: candidateObj.sdpMid,
+                sdpMLineIndex: typeof candidateObj.sdpMLineIndex === 'string'
+                    ? Number(candidateObj.sdpMLineIndex)
+                    : candidateObj.sdpMLineIndex
+            };
+
+            if (!candidateInit.sdpMid && (candidateInit.sdpMLineIndex === null || candidateInit.sdpMLineIndex === undefined)) {
+                console.warn('[⚠️ 잘못된 ICE Candidate 수신]:', data);
+                return;
+            }
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidateInit));
         }
     };
 
-    poseConnection.onopen = ()=> console.log('[✅ 포즈 데이터] 서버에 연결됨');
-    poseConnection.onmessage = msg=> resultDiv.innerText = JSON.parse(msg.data).prediction_result;
-    poseConnection.onerror = err=> console.error(err);
 
-    function createPeerConnection(){
-        peerConnection = new RTCPeerConnection(config);
-        peerConnection.onicecandidate = e=>{
-            if(e.candidate) signalingConnection.send(JSON.stringify({type:'candidate',candidate:e.candidate}));
-        };
-        peerConnection.ontrack = e=> video1.srcObject = e.streams[0];
+
+    // ✅ 포즈 데이터 서버 연결 이벤트
+    poseConnection.onopen = () => {
+        console.log('[✅ 포즈 데이터] 서버에 연결됨');
+    };
+
+    // ✅ 포즈 데이터 메시지 수신
+    poseConnection.onmessage = (message) => {
+        // const data = JSON.parse(message.data);
+        // console.log('[📩 포즈 데이터 수신]:', data);
+        // 포즈 데이터를 활용하여 화면 업데이트 가능
+
+        const data = JSON.parse(message.data);
+        console.log('AI 응답 수신: ',data.prediction_result);
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerText = data.prediction_result;
+
+    };
+
+    poseConnection.onerror = (error) => {
+        console.error('AI WebSocket 오류: ',error);
     }
+
+    function createPeerConnection() {
+        peerConnection = new RTCPeerConnection(config);
+
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                console.log('[📤 ICE Candidate 전송]:', event.candidate);
+                signalingConnection.send(JSON.stringify({
+                    type: 'candidate',
+                    candidate: event.candidate
+                }));
+            }
+        };
+
+        // ✅ 원격 스트림 수신 시 video1에 할당
+        peerConnection.ontrack = event => {
+            console.log('[🎥 원격 비디오 수신]');
+            video1.srcObject = event.streams[0];
+        };
+
+        // ✅ 로컬 미디어 스트림 추가 (필요하면 활성화)
+        /*
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                video2.srcObject = stream;
+            })
+            .catch(error => console.error('[❌ getUserMedia 에러]:', error));
+        */
+    }
+
+    function createOffer() {
+        peerConnection.createOffer().then(offer => {
+            return peerConnection.setLocalDescription(offer);
+        }).then(() => {
+            signalingConnection.send(JSON.stringify(peerConnection.localDescription));
+        });
+    }
+
+    let currentUid = null;
+
+    // 페이지 로드시 uid를 서버에서 fetch
+    window.onload = () => {
+
+        fetch("/api/user/me", {
+            method: "GET",
+            credentials: "include"  // 세션 쿠키 포함 필수
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("로그인이 필요합니다");
+                return res.json();
+            })
+            .then(user => {
+                currentUid = user.uid;
+                console.log("현재 로그인된 사용자 uid:", currentUid);
+            })
+            .catch(err => {
+                alert("로그인이 필요합니다.");
+                window.location.href = "/login.html";
+            });
+    };
+
+
+    let mediaRecorder=null;
+    console.log("mediaRecorder 초기값:", mediaRecorder);
+    let recordedChunks = [];
+    let timerInterval;
+    let recordingStartTime = null;
+    let sharedStream = null;
+
+    function startRecording() {
+        //const stream = video1.srcObject;
+
+        navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
+            .then(stream => {
+                sharedStream = stream;
+                console.log("stream tracks:", stream.getVideoTracks());
+                mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    uploadToServer(blob);
+                    stopTimer();
+                };
+
+                mediaRecorder.start();
+                console.log("화면 녹화 시작");
+
+                startTimer();
+            })
+            .catch(err => {
+                console.error("화면 녹화 오류:", err);
+            });
+        // if (!stream) {
+        //     console.warn("스트림이 아직 연결되지 않았습니다.");
+        //     return;
+        // }
+    }
+
+
+    function stopRecording() {
+
+        console.log("[녹화] mediaRecorder 현재 상태:", mediaRecorder);
+
+
+        if(sharedStream){
+            sharedStream.getTracks().forEach(track => track.stop());
+            sharedStream=null;
+            console.log("화면 공유 중지됨");
+        }
+        else {
+            console.warn("녹화가 아직 시작되지 않았습니다.");
+        }
+    }
+
+    function uploadToServer(blob) {
+        const formData = new FormData();
+        if(!currentUid){
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        formData.append("file", blob);
+        formData.append("uid", currentUid);
+
+        fetch("/api/user-videos/upload", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.text())
+            .then(url => {
+                console.log("업로드 완료: " + url); //S3에 업로드
+            })
+            .catch(err => console.error("업로드 실패", err));
+    }
+
+    // 타이머 시작
+    function startTimer() {
+        const timerEl = document.getElementById("recording-timer");
+        recordingStartTime = Date.now();
+
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+            const seconds = String(elapsed % 60).padStart(2, "0");
+            timerEl.textContent = `녹화 시간: ${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    // ⏹ 타이머 종료
+    function stopTimer() {
+        clearInterval(timerInterval);
+        document.getElementById("recording-timer").textContent = "녹화 시간: 00:00";
+    }
+
+
 </script>
 </body>
 </html>
