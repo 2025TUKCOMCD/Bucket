@@ -332,12 +332,12 @@ class PushUpPostureAnalyzer:
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return f"{result}<br> 자세가 올바릅니다."
+            return f"자세가 올바릅니다."
 
-        feedback = f"{result}<br> 다음 사항을 수정하세요: "
+        feedback = f"다음 사항을 수정하세요: "
 
         for key, message in faults.items():
-            feedback += f"<br> - {message}"
+            feedback += f"\n - {message}"
         
         return feedback
     
@@ -446,12 +446,13 @@ class LungePostureAnalyzer:
         faults, result = self.detect_faulty_posture(skeleton_sequence)
         
         if not faults:
-            return f"{result}\n측정 불가"
-        
-        feedback = f"{result}\n다음 사항을 수정하세요: "
+            return f"자세가 올바릅니다."
+
+        feedback = f"다음 사항을 수정하세요: "
+
         for key, message in faults.items():
-            feedback += f"\n- {message}"
-        
+            feedback += f"\n - {message}"
+            
         return feedback
 
 # FastAPI 앱 생성
