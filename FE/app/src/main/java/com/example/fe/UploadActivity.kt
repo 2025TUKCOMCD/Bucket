@@ -70,24 +70,22 @@ class UploadActivity : AppCompatActivity() {
 
         App.httpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                // 조회 실패해도 그냥 빈 값으로 업로드 진행
                 runOnUiThread {
-                    Toast.makeText(this@UploadActivity, "URL 조회 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UploadActivity, "URL 조회 실패: ${e.message}, 빈 값으로 업로드합니다.", Toast.LENGTH_SHORT).show()
                 }
+                onResult("") // 🚩 빈 값 전달
             }
+
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     val body = response.body?.string()?.trim().orEmpty()
-                    if (body.isNotEmpty()) {
-                        onResult(body)
-                    } else {
-                        runOnUiThread {
-                            Toast.makeText(this@UploadActivity, "URL이 비어 있습니다.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    onResult(body) // 비어있으면 그냥 빈 값 전달
                 } else {
                     runOnUiThread {
-                        Toast.makeText(this@UploadActivity, "URL 조회 오류: ${response.code}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@UploadActivity, "URL 조회 오류(${response.code}), 빈 값으로 업로드합니다.", Toast.LENGTH_SHORT).show()
                     }
+                    onResult("") // 🚩 빈 값 전달
                 }
             }
         })
