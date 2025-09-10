@@ -188,11 +188,11 @@
 
 <script>
     // ✅ 시그널링 서버 URL
-    const signalingUrl = 'ws://3.39.137.250:8080/signaling';
+    const signalingUrl = 'wss://homept.online/signaling';
     const signalingConnection = new WebSocket(signalingUrl);
 
     // ✅ 포즈 데이터 전용 WebSocket
-    const poseUrl = 'ws://3.39.137.250:8080/pose';
+    const poseUrl = 'wss://homept.online/pose';
     //const poseUrl = 'ws://localhost:8080/pose'
     const poseConnection = new WebSocket(poseUrl);
 
@@ -377,29 +377,33 @@
     };
 
 
-    let mediaRecorder;
+    let mediaRecorder=null;
+    console.log("mediaRecorder 초기값:", mediaRecorder);
     let recordedChunks = [];
     let timerInterval;
     let recordingStartTime = null;
+    let sharedStream = null;
 
     function startRecording() {
         //const stream = video1.srcObject;
 
         navigator.mediaDevices.getDisplayMedia({video : true, audio: false})
             .then(stream => {
-                mediaRecorder = new MediaRecorder(stream, {mimeType: 'video/webm'});
+                sharedStream = stream;
+                console.log("stream tracks:", stream.getVideoTracks());
+                mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
 
                 recordedChunks = [];
 
-                mediaRecorder.ondataavailable = e=>{
-                    if(e.data.size >0) recordedChunks.push(e.data);
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
                 };
 
                 mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, {type: 'video/webm'});
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
                     uploadToServer(blob);
                     stopTimer();
-                }
+                };
 
                 mediaRecorder.start();
                 console.log("화면 녹화 시작");
@@ -407,8 +411,8 @@
                 startTimer();
             })
             .catch(err => {
-                console.error("화면 녹화 오류: " ,err);
-            })
+                console.error("화면 녹화 오류:", err);
+            });
         // if (!stream) {
         //     console.warn("스트림이 아직 연결되지 않았습니다.");
         //     return;
@@ -417,11 +421,16 @@
 
 
     function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-            console.log("녹화 종료");
 
-        } else {
+        console.log("[녹화] mediaRecorder 현재 상태:", mediaRecorder);
+
+
+        if(sharedStream){
+            sharedStream.getTracks().forEach(track => track.stop());
+            sharedStream=null;
+            console.log("화면 공유 중지됨");
+        }
+         else {
             console.warn("녹화가 아직 시작되지 않았습니다.");
         }
     }

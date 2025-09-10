@@ -112,8 +112,15 @@ def normalize_pose_scale(X_data):
 
 def preprocess_3d_pose(X_data):
     X_data = center_pose_sequence(X_data)
-    mean = np.load("train_mean.npy")
-    std = np.load("train_std.npy")
+    # mean = np.load("train_mean.npy")
+    # std = np.load("train_std.npy")
+    # X_data = (X_data - mean) / std
+    
+    # (1, 16, joints, 3) → (N*T*V, C)
+    flat = X_data.reshape(-1, X_data.shape[-1])  # shape: (16*V, 3)
+    mean = np.mean(flat, axis=0)
+    std = np.std(flat, axis=0) + 1e-8  # 0 나눗셈 방지용 epsilon
+
     X_data = (X_data - mean) / std
     X_data = normalize_pose_scale(X_data)
     return X_data
@@ -179,6 +186,9 @@ class PushUpPostureAnalyzer:
         predicted_label = np.argmax(predictions, axis=-1)[0]
         confidence = predictions[0][predicted_label]
 
+        logger.info(f"예측된 레이블: {predicted_label}, 확신도: {confidence * 100:.2f}%")
+        logger.info(f"클래스 확률 분포: {predictions[0] * 100}")
+        
         # ✅ 결과 저장
         if predicted_label == 0:
             result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
@@ -351,6 +361,9 @@ class LungePostureAnalyzer:
         predicted_label = np.argmax(predictions, axis=-1)[0]
         confidence = predictions[0][predicted_label]
 
+        logger.info(f"예측된 레이블: {predicted_label}, 확신도: {confidence * 100:.2f}%")
+        logger.info(f"클래스 확률 분포: {predictions[0] * 100}")
+        
         # ✅ 결과 저장
         if predicted_label == 0:
             result = f"✅ 올바른 자세 ({confidence * 100:.2f}% 확신)"
@@ -385,14 +398,15 @@ class LungePostureAnalyzer:
         left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
         right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
         avg_diff = np.mean(np.array([left_diff, right_diff]))
-        if avg_diff > 0.07:
+        logger.info(f"avg_diff: {avg_diff}")
+        if avg_diff > 2.1:
             return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         return None
         
     def check_shoulders_level(self, skeleton_sequence):
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
-    
+        
         shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
         
         dy = shoulder_vec[:, :, 1]  # (1, T)
@@ -401,6 +415,12 @@ class LungePostureAnalyzer:
         avg_angle = np.mean(np.abs(angle))
         logger.info(f"avg_angle: {avg_angle}")
         if avg_angle > 20:  
+#         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
+#         avg_shoulder_diff = np.mean(shoulder_diff)       
+#         logger.info(f"ls: {skeleton_sequence[:, :, ls, 1]}")   
+#         logger.info(f"rs: {skeleton_sequence[:, :, rs, 1]}")
+#         logger.info(f"avg_shoulder_diff: {avg_shoulder_diff}")
+#         if avg_shoulder_diff > 2.7:  # 기준값은 데이터 스케일에 따라 조정
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
 
@@ -416,7 +436,8 @@ class LungePostureAnalyzer:
         # 회전량 측정: cross product의 y 성분
         twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
         avg_twist = np.mean(np.abs(twist))
-        if avg_twist > 0.009:
+        logger.info(f"avg_twist: {avg_twist}")
+        if avg_twist > 0.01:
             return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
 
@@ -497,7 +518,7 @@ def lunge_load():
     dummy_input = np.random.rand(1, 10, num_joints_2, num_features_2).astype(np.float32)
     model(dummy_input)
 
-    model.load_weights("stgcn_model_sport2_C3.weights.h5")
+    model.load_weights("stgcn_model_sport2_C1.weights.h5")
     
     lunge_analyzer = LungePostureAnalyzer(model)
 

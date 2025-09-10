@@ -94,7 +94,8 @@ public class AIWebSocketHandler extends TextWebSocketHandler {
         List<Map<String, Object>> frames = (List<Map<String, Object>>) rawData.get("frames");
 
 
-        String viewKey = getSelectedExercise().equals("pushup") ? "view3" : "view4";
+        String viewKey = "view3";
+                //getSelectedExercise().equals("pushup") ? "view3" : "view3";
         List<String> selectedPoints = getSelectedExercise().equals("pushup") ? Points_1 : Points_2;
 
         log.info("현재 운동 : {}",viewKey);
