@@ -393,35 +393,61 @@ class LungePostureAnalyzer:
     def check_feet_direction(self, skeleton_sequence):
         la = self.joint_indices['left_ankle']
         ra = self.joint_indices['right_ankle']
-        ls = self.joint_indices["left_shoulder"]
-        rs = self.joint_indices["right_shoulder"]
-        left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
-        right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
-        avg_diff = np.mean(np.array([left_diff, right_diff]))
-        logger.info(f"avg_diff: {avg_diff}")
-        if avg_diff > 2.1:
+        
+        baseline_left = skeleton_sequence[:, 0, la, 0]
+        baseline_right = skeleton_sequence[:, 0, ra, 0]
+        
+        left_diff = np.abs(skeleton_sequence[:, :, la, 0] - baseline_left[:, None])
+        right_diff = np.abs(skeleton_sequence[:, :, ra, 0] - baseline_right[:, None])
+
+        left_x  = skeleton_sequence[:, :, la, 0]
+        right_x = skeleton_sequence[:, :, ra, 0]
+    
+        left_range  = np.max(left_x) - np.min(left_x)
+        right_range = np.max(right_x) - np.min(right_x)
+
+        max_range = max(float(left_range), float(right_range))
+        logger.info("\nfeet_range:", max_range)  
+        
+        max_diff = np.maximum(left_diff, right_diff)
+        logger.info('\nmax_diff:', np.max(max_diff))  
+        
+        if max_range > 0.1:
             return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
+        # la = self.joint_indices['left_ankle']
+        # ra = self.joint_indices['right_ankle']
+        # ls = self.joint_indices["left_shoulder"]
+        # rs = self.joint_indices["right_shoulder"]
+        # left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
+        # right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
+        # avg_diff = np.mean(np.array([left_diff, right_diff]))
+        # logger.info(f"avg_diff: {avg_diff}")
+        # if avg_diff > 2.1:
+        #     return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         return None
         
     def check_shoulders_level(self, skeleton_sequence):
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
-        
-        shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
-        
-        dy = shoulder_vec[:, :, 1]  # (1, T)
-        shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
-        angle = np.degrees(np.arcsin(dy / shoulder_length))  
-        avg_angle = np.mean(np.abs(angle))
-        logger.info(f"avg_angle: {avg_angle}")
-        if avg_angle > 20:  
-#         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
-#         avg_shoulder_diff = np.mean(shoulder_diff)       
-#         logger.info(f"ls: {skeleton_sequence[:, :, ls, 1]}")   
-#         logger.info(f"rs: {skeleton_sequence[:, :, rs, 1]}")
-#         logger.info(f"avg_shoulder_diff: {avg_shoulder_diff}")
-#         if avg_shoulder_diff > 2.7:  # 기준값은 데이터 스케일에 따라 조정
+    
+        shoulder_diff0 = np.abs(skeleton_sequence[:, 0, rs, 1] - skeleton_sequence[:, 0, ls, 1])
+        shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
+        exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
+        logger.info('\nexceed_amounts:', np.max(exceed_amounts))  
+        if np.max(exceed_amounts > 0.1):  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
+        # ls = self.joint_indices["left_shoulder"]
+        # rs = self.joint_indices["right_shoulder"]
+        
+        # shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
+        
+        # dy = shoulder_vec[:, :, 1]  # (1, T)
+        # shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
+        # angle = np.degrees(np.arcsin(dy / shoulder_length))  
+        # avg_angle = np.mean(np.abs(angle))
+        # logger.info(f"avg_angle: {avg_angle}")
+        # if avg_angle > 20:  
+        #     return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
 
     def check_body_twist(self, skeleton_sequence):
