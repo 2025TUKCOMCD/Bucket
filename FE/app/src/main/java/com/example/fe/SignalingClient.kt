@@ -10,7 +10,7 @@ class SignalingClient(
     private val client = OkHttpClient()
 
     private val requestSignaling = Request.Builder()
-        .url("wss:/homept.online/signaling")
+        .url("wss://homept.online/signaling")
         .build()
     private val requestPose = Request.Builder()
         .url("wss://homept.online/pose")

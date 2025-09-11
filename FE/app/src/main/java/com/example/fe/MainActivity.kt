@@ -478,11 +478,28 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try { videoCapturer.stopCapture() } catch (_: Exception) {}
+        try {
+            videoCapturer.stopCapture()
+            videoCapturer.dispose()   // 추가
+        } catch (_: Exception) {}
+
+        localVideoTrack.dispose()     // 추가
+        videoSource.dispose()         // 추가
+
+        surfaceViewRenderer.clearImage() // 추가
         surfaceViewRenderer.release()
+
+        peerConnection?.close()       // 추가
+        peerConnection = null
+
         peerConnectionFactory.dispose()
         eglBase.release()
-        if (::poseLandmarker.isInitialized) poseLandmarker.close()
+
+        if (::poseLandmarker.isInitialized) {
+            poseLandmarker.close()
+        }
+
         signalingClient?.disconnect()
+        signalingClient = null        // 추가
     }
 }
