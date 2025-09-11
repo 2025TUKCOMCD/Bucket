@@ -407,12 +407,12 @@ class LungePostureAnalyzer:
         right_range = np.max(right_x) - np.min(right_x)
 
         max_range = max(float(left_range), float(right_range))
-        logger.info("\nfeet_range:", max_range)  
+        logger.info(f"\nfeet_range: {max_range}")
         
         max_diff = np.maximum(left_diff, right_diff)
-        logger.info('\nmax_diff:', np.max(max_diff))  
+        logger.info(f"\nmax_diff:: {np.max(max_diff)}")
         
-        if max_range > 0.1:
+        if max_range > 0.15:
             return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         # la = self.joint_indices['left_ankle']
         # ra = self.joint_indices['right_ankle']
@@ -433,8 +433,8 @@ class LungePostureAnalyzer:
         shoulder_diff0 = np.abs(skeleton_sequence[:, 0, rs, 1] - skeleton_sequence[:, 0, ls, 1])
         shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
         exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
-        logger.info('\nexceed_amounts:', np.max(exceed_amounts))  
-        if np.max(exceed_amounts > 0.1):  
+        logger.info(f"\nexceed_amounts:: {np.max(exceed_amounts)}")
+        if np.max(exceed_amounts) > 0.1:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         # ls = self.joint_indices["left_shoulder"]
         # rs = self.joint_indices["right_shoulder"]
