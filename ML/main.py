@@ -393,27 +393,39 @@ class LungePostureAnalyzer:
     def check_feet_direction(self, skeleton_sequence):
         la = self.joint_indices['left_ankle']
         ra = self.joint_indices['right_ankle']
+        left_x  = skeleton_sequence[:, :, la, 0]   # (batch, T)
+        right_x = skeleton_sequence[:, :, ra, 0]   # (batch, T)
         
-        baseline_left = skeleton_sequence[:, 0, la, 0]
-        baseline_right = skeleton_sequence[:, 0, ra, 0]
+        # 프레임별 양발 x-간격
+        spread_x = np.abs(left_x - right_x)        # (batch, T)
         
-        left_diff = np.abs(skeleton_sequence[:, :, la, 0] - baseline_left[:, None])
-        right_diff = np.abs(skeleton_sequence[:, :, ra, 0] - baseline_right[:, None])
+        # 0프레임은 기준/정렬 프레임이므로 제외 권장
+        spread_range = float(np.max(spread_x[:, 1:]) - np.min(spread_x[:, 1:]))
+        
+        logger.info(f"spread_range_x: {spread_range}")
+        if spread_range > 1:
+            return "발 간격이 동작 중 일정하지 않습니다. 정면 정렬을 유지하세요."
+            
+        # baseline_left = skeleton_sequence[:, 0, la, 0]
+        # baseline_right = skeleton_sequence[:, 0, ra, 0]
+        
+        # left_diff = np.abs(skeleton_sequence[:, :, la, 0] - baseline_left[:, None])
+        # right_diff = np.abs(skeleton_sequence[:, :, ra, 0] - baseline_right[:, None])
 
-        left_x  = skeleton_sequence[:, :, la, 0]
-        right_x = skeleton_sequence[:, :, ra, 0]
+        # left_x  = skeleton_sequence[:, :, la, 0]
+        # right_x = skeleton_sequence[:, :, ra, 0]
     
-        left_range  = np.max(left_x) - np.min(left_x)
-        right_range = np.max(right_x) - np.min(right_x)
+        # left_range  = np.max(left_x) - np.min(left_x)
+        # right_range = np.max(right_x) - np.min(right_x)
 
-        max_range = max(float(left_range), float(right_range))
-        logger.info(f"\nfeet_range: {max_range}")
+        # max_range = max(float(left_range), float(right_range))
+        # logger.info(f"\nfeet_range: {max_range}")
         
-        max_diff = np.maximum(left_diff, right_diff)
-        logger.info(f"\nmax_diff:: {np.max(max_diff)}")
+        # max_diff = np.maximum(left_diff, right_diff)
+        # logger.info(f"\nmax_diff:: {np.max(max_diff)}")
         
-        if max_range > 0.15:
-            return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
+        # if max_range > 1:
+        #     return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         # la = self.joint_indices['left_ankle']
         # ra = self.joint_indices['right_ankle']
         # ls = self.joint_indices["left_shoulder"]
@@ -434,7 +446,7 @@ class LungePostureAnalyzer:
         shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
         exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
         logger.info(f"\nexceed_amounts:: {np.max(exceed_amounts)}")
-        if np.max(exceed_amounts) > 0.1:  
+        if np.max(exceed_amounts) > 0.2:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         # ls = self.joint_indices["left_shoulder"]
         # rs = self.joint_indices["right_shoulder"]
@@ -476,7 +488,7 @@ class LungePostureAnalyzer:
         twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
         avg_twist = np.mean(np.abs(twist))
         logger.info(f"avg_twist: {avg_twist}")
-        if avg_twist > 0.01:
+        if avg_twist > 0.008:
             return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
 
