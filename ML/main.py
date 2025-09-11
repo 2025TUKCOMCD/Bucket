@@ -446,7 +446,7 @@ class LungePostureAnalyzer:
         shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
         exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
         logger.info(f"\nexceed_amounts:: {np.max(exceed_amounts)}")
-        if np.max(exceed_amounts) > 0.5:  
+        if np.max(exceed_amounts) > 0.8:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         # ls = self.joint_indices["left_shoulder"]
         # rs = self.joint_indices["right_shoulder"]
