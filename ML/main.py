@@ -403,7 +403,7 @@ class LungePostureAnalyzer:
         spread_range = float(np.max(spread_x[:, 1:]) - np.min(spread_x[:, 1:]))
         
         logger.info(f"spread_range_x: {spread_range}")
-        if spread_range > 1:
+        if spread_range < 0.65 or spread_range > 0.8:
             return "발 간격이 동작 중 일정하지 않습니다. 정면 정렬을 유지하세요."
             
         # baseline_left = skeleton_sequence[:, 0, la, 0]
@@ -446,7 +446,7 @@ class LungePostureAnalyzer:
         shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
         exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
         logger.info(f"\nexceed_amounts:: {np.max(exceed_amounts)}")
-        if np.max(exceed_amounts) > 0.2:  
+        if np.max(exceed_amounts) > 0.5:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         # ls = self.joint_indices["left_shoulder"]
         # rs = self.joint_indices["right_shoulder"]
