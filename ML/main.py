@@ -325,7 +325,7 @@ class PushUpPostureAnalyzer:
         head_y_misalignment_ratio = np.sum(head_y_movement_smoothed > 0.1) / head_y_movement.shape[1]
     
         # print(f"머리 전방 기울기 비율: {head_forward_ratio:.2f}, 머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
-        logger.info(f"머리 전방 기울기 비율: {head_forward_ratio:.2f}, 머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
+        logger.info(f"머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
     
         # ✅ 60% 이상의 프레임에서 머리 정렬이 틀어졌다면 오류 발생
         if head_y_misalignment_ratio > 0.6:
