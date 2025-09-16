@@ -236,7 +236,7 @@ class PushUpPostureAnalyzer:
         faulty_ratio = faulty_frames / total_frames
     
         # print(f"기준 초과 프레임 비율: {faulty_ratio:.2f}")
-        logger.info(f\n "기준 초과 프레임 비율: {faulty_ratio:.2f}")
+        logger.info(f"\n 기준 초과 프레임 비율: {faulty_ratio:.2f}")
         logger.info(f"\n 평균 척추 각도: {avg_spine_angle:.2f}, 표준 편차: {std_spine_angle:.2f}")
     
         # ✅ 전체 프레임 중 30% 이상이 기준을 벗어난 경우에만 경고
