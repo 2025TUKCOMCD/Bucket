@@ -236,6 +236,8 @@ class PushUpPostureAnalyzer:
         faulty_ratio = faulty_frames / total_frames
     
         # print(f"기준 초과 프레임 비율: {faulty_ratio:.2f}")
+        logger.info(f\n "기준 초과 프레임 비율: {faulty_ratio:.2f}")
+        logger.info(f"\n 평균 척추 각도: {avg_spine_angle:.2f}, 표준 편차: {std_spine_angle:.2f}")
     
         # ✅ 전체 프레임 중 30% 이상이 기준을 벗어난 경우에만 경고
         if faulty_ratio > min_faulty_frames_ratio and std_spine_angle > threshold_std:
@@ -268,6 +270,7 @@ class PushUpPostureAnalyzer:
         threshold = np.median(chest_positions_smoothed) * 0.04 
     
         # print(f"가슴 높이 변화: {movement_range:.3f}, 허용 기준: {threshold:.3f}")
+        logger.info(f"\n가슴 높이 변화: {movement_range:.3f}, 허용 기준: {threshold:.3f}")
     
         # ✅ 9. 최소 65%의 프레임이 기준을 넘으면 정상으로 판단
         if movement_range < threshold:
@@ -298,6 +301,8 @@ class PushUpPostureAnalyzer:
         
         # ✅ 모든 프레임에서 평균 오차 계산
         avg_hand_misalignment = np.mean(hand_misalignment_per_frame)
+        
+        logger.info(f"\n avg_hand_misalignment: {avg_hand_misalignment}")
     
         # ✅ 허용 기준 조정 (기존 0.015 → 0.04)
         if avg_hand_misalignment > 0.04:
@@ -320,6 +325,7 @@ class PushUpPostureAnalyzer:
         head_y_misalignment_ratio = np.sum(head_y_movement_smoothed > 0.1) / head_y_movement.shape[1]
     
         # print(f"머리 전방 기울기 비율: {head_forward_ratio:.2f}, 머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
+        logger.info(f"머리 전방 기울기 비율: {head_forward_ratio:.2f}, 머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
     
         # ✅ 60% 이상의 프레임에서 머리 정렬이 틀어졌다면 오류 발생
         if head_y_misalignment_ratio > 0.6:
