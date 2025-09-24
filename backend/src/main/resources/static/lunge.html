@@ -51,23 +51,23 @@
         }
 
         /* ─── My Video 부분만 수정 ─── */
-        /* ─── My Video 컨테이너를 16:9로 고정 ─── */
+        /* My Video 컨테이너를 16:9로 고정하고 내부 여백 제거 */
         .video-box:first-child .video-content {
             padding: 0;
-            aspect-ratio: 16 / 9;        /* ← 9/16 → 16/9 로 변경 */
+            aspect-ratio: 16 / 9;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* ★ 변경: 회전 후 삐져나오는 영역 잘라내기 */
             flex: 1;
         }
-        /* 회전된 비디오가 짤리지 않고 전체 표시되도록 */
+        /* ★ 변경: 회전된 비디오가 컨테이너를 꽉 채우도록 object-fit: cover 적용 */
         .video-box:first-child .video-content video {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(90deg);
             transform-origin: center center;
-            width: auto;                 /* ← width:100% → auto */
-            height: 100%;                /* 세로에 딱 맞추고 */
-            object-fit: contain;         /* 전체가 보이도록 */
+            width: 100%;              /* ★ 변경: 가로/세로 모두 100%로 채우기 */
+            height: 100%;             /* ★ 변경 */
+            object-fit: cover;        /* ★ 변경: 빈 여백 없이 꽉 채우되 일부 크롭 허용 */
             border-radius: 0 0 var(--radius) var(--radius);
         }
         /* ──────────────────────────── */
