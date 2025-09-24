@@ -409,7 +409,7 @@ class LungePostureAnalyzer:
         spread_range = float(np.max(spread_x[:, 1:]) - np.min(spread_x[:, 1:]))
         
         logger.info(f"spread_range_x: {spread_range}")
-        if spread_range < 0.65 or spread_range > 0.8:
+        if spread_range < 0.35 or spread_range > 0.5:
             return "발 간격이 동작 중 일정하지 않습니다. 정면 정렬을 유지하세요."
             
         # baseline_left = skeleton_sequence[:, 0, la, 0]
