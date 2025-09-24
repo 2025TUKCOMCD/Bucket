@@ -236,6 +236,8 @@ class PushUpPostureAnalyzer:
         faulty_ratio = faulty_frames / total_frames
     
         # print(f"기준 초과 프레임 비율: {faulty_ratio:.2f}")
+        logger.info(f"\n 기준 초과 프레임 비율: {faulty_ratio:.2f}")
+        logger.info(f"\n 평균 척추 각도: {avg_spine_angle:.2f}, 표준 편차: {std_spine_angle:.2f}")
     
         # ✅ 전체 프레임 중 30% 이상이 기준을 벗어난 경우에만 경고
         if faulty_ratio > min_faulty_frames_ratio and std_spine_angle > threshold_std:
@@ -268,6 +270,7 @@ class PushUpPostureAnalyzer:
         threshold = np.median(chest_positions_smoothed) * 0.04 
     
         # print(f"가슴 높이 변화: {movement_range:.3f}, 허용 기준: {threshold:.3f}")
+        logger.info(f"\n가슴 높이 변화: {movement_range:.3f}, 허용 기준: {threshold:.3f}")
     
         # ✅ 9. 최소 65%의 프레임이 기준을 넘으면 정상으로 판단
         if movement_range < threshold:
@@ -298,6 +301,8 @@ class PushUpPostureAnalyzer:
         
         # ✅ 모든 프레임에서 평균 오차 계산
         avg_hand_misalignment = np.mean(hand_misalignment_per_frame)
+        
+        logger.info(f"\n avg_hand_misalignment: {avg_hand_misalignment}")
     
         # ✅ 허용 기준 조정 (기존 0.015 → 0.04)
         if avg_hand_misalignment > 0.04:
@@ -320,6 +325,7 @@ class PushUpPostureAnalyzer:
         head_y_misalignment_ratio = np.sum(head_y_movement_smoothed > 0.1) / head_y_movement.shape[1]
     
         # print(f"머리 전방 기울기 비율: {head_forward_ratio:.2f}, 머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
+        logger.info(f"머리 상하 움직임 비율: {head_y_misalignment_ratio:.2f}")
     
         # ✅ 60% 이상의 프레임에서 머리 정렬이 틀어졌다면 오류 발생
         if head_y_misalignment_ratio > 0.6:
@@ -393,35 +399,86 @@ class LungePostureAnalyzer:
     def check_feet_direction(self, skeleton_sequence):
         la = self.joint_indices['left_ankle']
         ra = self.joint_indices['right_ankle']
-        ls = self.joint_indices["left_shoulder"]
-        rs = self.joint_indices["right_shoulder"]
-        left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
-        right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
-        avg_diff = np.mean(np.array([left_diff, right_diff]))
-        logger.info(f"avg_diff: {avg_diff}")
-        if avg_diff > 2.1:
-            return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
+        left_x  = skeleton_sequence[:, :, la, 0]   # (batch, T)
+        right_x = skeleton_sequence[:, :, ra, 0]   # (batch, T)
+        
+        # 프레임별 양발 x-간격
+        spread_x = np.abs(left_x - right_x)        # (batch, T)
+        
+        # 0프레임은 기준/정렬 프레임이므로 제외 권장
+        spread_range = float(np.max(spread_x[:, 1:]) - np.min(spread_x[:, 1:]))
+        
+        logger.info(f"spread_range_x: {spread_range}")
+        if spread_range < 0.65 or spread_range > 0.8:
+            return "발 간격이 동작 중 일정하지 않습니다. 정면 정렬을 유지하세요."
+            
+        # baseline_left = skeleton_sequence[:, 0, la, 0]
+        # baseline_right = skeleton_sequence[:, 0, ra, 0]
+        
+        # left_diff = np.abs(skeleton_sequence[:, :, la, 0] - baseline_left[:, None])
+        # right_diff = np.abs(skeleton_sequence[:, :, ra, 0] - baseline_right[:, None])
+
+        # left_x  = skeleton_sequence[:, :, la, 0]
+        # right_x = skeleton_sequence[:, :, ra, 0]
+    
+        # left_range  = np.max(left_x) - np.min(left_x)
+        # right_range = np.max(right_x) - np.min(right_x)
+
+        # max_range = max(float(left_range), float(right_range))
+        # logger.info(f"\nfeet_range: {max_range}")
+        
+        # max_diff = np.maximum(left_diff, right_diff)
+        # logger.info(f"\nmax_diff:: {np.max(max_diff)}")
+        
+        # if max_range > 1:
+        #     return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
+        # la = self.joint_indices['left_ankle']
+        # ra = self.joint_indices['right_ankle']
+        # ls = self.joint_indices["left_shoulder"]
+        # rs = self.joint_indices["right_shoulder"]
+        # left_diff = np.abs(skeleton_sequence[:, :, ls, 0] - skeleton_sequence[:, :, la, 0])
+        # right_diff = np.abs(skeleton_sequence[:, :, rs, 0] - skeleton_sequence[:, :, ra, 0])
+        # avg_diff = np.mean(np.array([left_diff, right_diff]))
+        # logger.info(f"avg_diff: {avg_diff}")
+        # if avg_diff > 2.1:
+        #     return "몸과 발의 방향이 일치하지 않습니다. 발의 방향을 정면으로 유지하세요"
         return None
         
     def check_shoulders_level(self, skeleton_sequence):
         ls = self.joint_indices["left_shoulder"]
         rs = self.joint_indices["right_shoulder"]
-        
-        shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
-        
-        dy = shoulder_vec[:, :, 1]  # (1, T)
-        shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
-        angle = np.degrees(np.arcsin(dy / shoulder_length))  
-        avg_angle = np.mean(np.abs(angle))
-        logger.info(f"avg_angle: {avg_angle}")
-        if avg_angle > 90:  
-#         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
-#         avg_shoulder_diff = np.mean(shoulder_diff)       
-#         logger.info(f"ls: {skeleton_sequence[:, :, ls, 1]}")   
-#         logger.info(f"rs: {skeleton_sequence[:, :, rs, 1]}")
-#         logger.info(f"avg_shoulder_diff: {avg_shoulder_diff}")
-#         if avg_shoulder_diff > 2.7:  # 기준값은 데이터 스케일에 따라 조정
+    
+        shoulder_diff0 = np.abs(skeleton_sequence[:, 0, rs, 1] - skeleton_sequence[:, 0, ls, 1])
+        shoulder_diff_total = np.abs(skeleton_sequence[:, :, rs, 1] - skeleton_sequence[:, :, ls, 1])
+        exceed_amounts = shoulder_diff_total - shoulder_diff0[:, None]
+        logger.info(f"\nexceed_amounts:: {np.max(exceed_amounts)}")
+        if np.max(exceed_amounts) > 0.8:  
             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
+        # ls = self.joint_indices["left_shoulder"]
+        # rs = self.joint_indices["right_shoulder"]
+        
+        # shoulder_vec = skeleton_sequence[:, :, rs, :] - skeleton_sequence[:, :, ls, :]  # shape: (1, T, 3)
+        
+        # dy = shoulder_vec[:, :, 1]  # (1, T)
+        # shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
+        # angle = np.degrees(np.arcsin(dy / shoulder_length))  
+        # avg_angle = np.mean(np.abs(angle))
+        # logger.info(f"avg_angle: {avg_angle}")
+        # if avg_angle > 20:  
+        #     return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
+#         dy = shoulder_vec[:, :, 1]  # (1, T)
+#         shoulder_length = np.linalg.norm(shoulder_vec, axis=-1) + 1e-6
+#         angle = np.degrees(np.arcsin(dy / shoulder_length))  
+#         avg_angle = np.mean(np.abs(angle))
+#         logger.info(f"avg_angle: {avg_angle}")
+#         if avg_angle > 90:  
+# #         shoulder_diff = np.abs(skeleton_sequence[:, :, ls, 1] - skeleton_sequence[:, :, rs, 1])
+# #         avg_shoulder_diff = np.mean(shoulder_diff)       
+# #         logger.info(f"ls: {skeleton_sequence[:, :, ls, 1]}")   
+# #         logger.info(f"rs: {skeleton_sequence[:, :, rs, 1]}")
+# #         logger.info(f"avg_shoulder_diff: {avg_shoulder_diff}")
+# #         if avg_shoulder_diff > 2.7:  # 기준값은 데이터 스케일에 따라 조정
+#             return "어깨 높이가 비대칭입니다. 양쪽 어깨를 수평으로 맞춰주세요."
         return None
 
     def check_body_twist(self, skeleton_sequence):
@@ -437,7 +494,7 @@ class LungePostureAnalyzer:
         twist = np.cross(shoulder_vec, hip_vec)[..., 1]  # y축 방향 회전 정도
         avg_twist = np.mean(np.abs(twist))
         logger.info(f"avg_twist: {avg_twist}")
-        if avg_twist > 0.01:
+        if avg_twist > 0.008:
             return "몸통이 비틀어져 있습니다. 정면을 유지하세요."
         return None
 
